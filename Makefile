@@ -16,4 +16,4 @@ clean :
 	$(RM) *.o
 
 distclean : clean
-	$(RM) flup
+	$(RM) flut
