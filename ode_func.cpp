@@ -2,6 +2,10 @@
 #include "ode_func.h"
 
 
+
+
+
+
 void   Chain (double t, double *Y, double *R)
 //
 //RSH of motion of system
@@ -54,7 +58,7 @@ void   Chain (double t, double *Y, double *R)
    
     // eq. for momentum
     R[n+j+dim] = chi*(Y[n+k+j] + Y[n-k+j] - 2.0*Y[n+j] ) + 
-                 beta*(r1*(Y[n+k+j] - Y[n+j]) - 
+                 bet*(r1*(Y[n+k+j] - Y[n+j]) - 
                        r2*(Y[n+j] - Y[n-k+j])) - Psi1*R[n+j];
    
     
@@ -79,7 +83,7 @@ void   Chain (double t, double *Y, double *R)
       
       //eq. for momentum
       R[n+j+dim] = chi*(Y[n+k+j] + Y[n-k+j] - 2.0*Y[n+j] ) + 
-                   beta*(r1*(Y[n+k+j] - Y[n+j]) - 
+                   bet*(r1*(Y[n+k+j] - Y[n+j]) - 
                          r2*(Y[n+j] - Y[n-k+j]));  
     }
   }
@@ -100,7 +104,7 @@ void   Chain (double t, double *Y, double *R)
           
     // eq for momentum
     R[n+j+dim] = chi*(Y[n+k+j] + Y[n-k+j] - 2.0*Y[n+j] ) + 
-                 beta*(r1*(Y[n+k+j] - Y[n+j]) - 
+                 bet*(r1*(Y[n+k+j] - Y[n+j]) - 
                        r2*(Y[n+j] - Y[n-k+j])) - Psi2*R[n+j] ;   
   }
     
@@ -168,7 +172,7 @@ void   Chain1 (double t, double *Y, double *R)
    
   // eq. for momentum
   R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-             beta*(r1*r1*r1 - r2*r2*r2) - Psi1*R[n];
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi1*R[n];
    
     
   
@@ -188,7 +192,7 @@ void   Chain1 (double t, double *Y, double *R)
    
     // eq. for momentum
     R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-               beta*(r1*r1*r1 - r2*r2*r2);
+               bet*(r1*r1*r1 - r2*r2*r2);
   }
 
   //l' ultima massa mobile 
@@ -202,7 +206,7 @@ void   Chain1 (double t, double *Y, double *R)
    
   // eq. for momentum
   R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-             beta*(r1*r1*r1 - r2*r2*r2) - Psi2*R[n] ;   
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi2*R[n] ;   
   
     
   ////////////////////////////////////
@@ -384,7 +388,7 @@ void   AlfaBeta (double t, double *Y, double *R)
   // eq. for momentum
   R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
              Alpha*(r1*r1 - r2*r2) + 
-             beta*(r1*r1*r1 - r2*r2*r2) - Psi1*R[n];
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi1*R[n];
     
   ////////////////////////////////////
   
@@ -402,7 +406,7 @@ void   AlfaBeta (double t, double *Y, double *R)
    
     // eq. for momentum
     R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-               Alpha*(r1*r1 - r2*r2)+  beta*(r1*r1*r1 - r2*r2*r2);
+               Alpha*(r1*r1 - r2*r2)+  bet*(r1*r1*r1 - r2*r2*r2);
   }
 
   //l' ultima massa mobile 
@@ -417,7 +421,7 @@ void   AlfaBeta (double t, double *Y, double *R)
   // eq. for momentum
   R[n+dim] = chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
              Alpha*(r1*r1 - r2*r2)+ 
-             beta*(r1*r1*r1 - r2*r2*r2) - Psi2*R[n] ;   
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi2*R[n] ;   
   
     
   ////////////////////////////////////
@@ -521,5 +525,22 @@ void LJ (double t, double *Y, double *R){
   
   ////////////////////////////////////
 }
+
+// void generateRandomIntegers(int min_val, int max_val, std::vector<int>* random_numbers) {
+//     if (min_val > max_val) {
+//         std::swap(min_val, max_val);
+//     }
+
+//     std::random_device rd;
+//     std::mt19937 gen(rd());
+//     std::uniform_int_distribution<> distrib(min_val, max_val);
+
+//     random_numbers->clear();
+//     random_numbers->reserve(random_numbers->size());
+
+//     for (size_t i = 0; i < random_numbers->capacity(); ++i) {
+//         random_numbers->push_back(distrib(gen));
+//     }
+// }
 	
 
