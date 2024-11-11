@@ -8,7 +8,7 @@
 
 void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q);
 
-
+// easter egg
 int main()
 {
   ofstream ddata;
