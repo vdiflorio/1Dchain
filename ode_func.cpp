@@ -6,7 +6,7 @@
 
 
 
-void   Chain (double t, double *Y, double *R)
+void   Chain (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 //RSH of motion of system
 ///////////////////////////////////////////
@@ -125,7 +125,7 @@ void   Chain (double t, double *Y, double *R)
 //////////////////////////////////////////////////////////////////////
 
 
-void   Chain1 (double t, double *Y, double *R)
+void   Chain1 (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 //RSH of motion of system
 ///////////////////////////////////////////
@@ -227,7 +227,7 @@ void   Chain1 (double t, double *Y, double *R)
 
 
 
-void   SPC (double t, double *Y, double *R)
+void   SPC (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 //RSH of motion of system
 ///////////////////////////////////////////
@@ -340,7 +340,7 @@ void   SPC (double t, double *Y, double *R)
 
 
 
-void   AlfaBeta (double t, double *Y, double *R)
+void   AlfaBeta (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 //RSH of motion of system
 ///////////////////////////////////////////
@@ -435,7 +435,7 @@ void   AlfaBeta (double t, double *Y, double *R)
 }
 
 
-void   AlfaBeta_corrected (double t, double *Y, double *R)
+void   AlfaBeta_corrected (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 //RSH of motion of system
 ///////////////////////////////////////////
@@ -540,7 +540,7 @@ void   AlfaBeta_corrected (double t, double *Y, double *R)
 
 
 
-void LJ (double t, double *Y, double *R){
+void LJ (double t, std::vector<double> &Y, std::vector<double> &R){
 	int     i,j,k,n;
   double  r1 =0.0, r2 =0.0;
   k = 2*dim;
@@ -630,21 +630,5 @@ void LJ (double t, double *Y, double *R){
   ////////////////////////////////////
 }
 
-// void generateRandomIntegers(int min_val, int max_val, std::vector<int>* random_numbers) {
-//     if (min_val > max_val) {
-//         std::swap(min_val, max_val);
-//     }
-
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<> distrib(min_val, max_val);
-
-//     random_numbers->clear();
-//     random_numbers->reserve(random_numbers->size());
-
-//     for (size_t i = 0; i < random_numbers->capacity(); ++i) {
-//         random_numbers->push_back(distrib(gen));
-//     }
-// }
 	
 

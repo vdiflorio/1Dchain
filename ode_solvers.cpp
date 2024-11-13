@@ -1,7 +1,7 @@
 #include "ode_solvers.h"
 
 
-void EulerStep (double t, double *Y, void (*dYdt)(double, double *, double *),
+void EulerStep (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
                 double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
@@ -9,7 +9,7 @@ void EulerStep (double t, double *Y, void (*dYdt)(double, double *, double *),
 // of the system of equations.
 {
   int n;
-  double rhs[neq];
+  std::vector<double> rhs(neq);
   dYdt (t, Y, rhs);
   for (n = 0; n < neq; n++){
     Y[n] += dt*rhs[n];
@@ -19,15 +19,15 @@ void EulerStep (double t, double *Y, void (*dYdt)(double, double *, double *),
 
 
 
-void RK2Step(double t, double *Y, void (*dYdt)(double, double *, double *),
-             double dt, int neq)
+void RK2Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+                double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
 // a pointer to the function that calculates the right hand side 
 // of the system of equations.
 {
   int n;
-  double y1[neq], k1[neq], k2[neq];
+  std::vector<double> y1(neq), k1(neq), k2(neq);
   
   dYdt (t, Y, k1);
   for (n = 0; n < neq; n++){
@@ -43,16 +43,16 @@ void RK2Step(double t, double *Y, void (*dYdt)(double, double *, double *),
 
 
 
-void RK4Step(double t, double *Y, void (*dYdt)(double, double *, double *),
-             double dt, int neq)
+void RK4Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+                double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
 // a pointer to the function that calculates the right hand side 
 // of the system of equations.
 {
   int n;
-  double y1[neq], y2[neq], y3[neq]; 
-  double k1[neq], k2[neq], k3[neq], k4[neq];
+  std::vector<double> y1(neq), y2(neq), y3(neq); 
+  std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq);
   
   dYdt (t, Y, k1);
   
@@ -80,16 +80,16 @@ void RK4Step(double t, double *Y, void (*dYdt)(double, double *, double *),
 }
 
 
-void RK5Step(double t, double *Y, void (*dYdt)(double, double *, double *),
-             double dt, int neq)
+void RK5Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+                double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
 // a pointer to the function that calculates the right hand side 
 // of the system of equations.
 {
   int n;
-  double y1[neq], y2[neq], y3[neq], y4[neq], y5[neq]; 
-  double k1[neq], k2[neq], k3[neq], k4[neq], k5[neq], k6[neq];
+  std::vector<double> y1(neq), y2(neq), y3(neq), y4(neq), y5(neq); 
+  std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq), k5(neq), k6(neq);
 
   
   dYdt (t, Y, k1);

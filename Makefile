@@ -7,7 +7,7 @@ all : fput
 %.o : %.cpp
 	$(CXX) -c $(CXXFLAGS) $<
 
-fput : main.o $(patsubst %.cpp, %.o, $(wildcard *.cpp))
+fput : condizioni_iniziali.o $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ 
 
 .PHONY : clean distclean

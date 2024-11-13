@@ -7,9 +7,6 @@
 
 
 
-using namespace std;
-
-
 
 #define  chi     1.0  //"intensità" potenziale armonico 
 
@@ -27,17 +24,17 @@ const int  a     =  1.0;  //distanza di eq. tra le part.
 
 const int  m      = 1.0;
 const int bet   = 1.0;  //"intensità" potenziale anarmonico  quartico
-void Chain (double t, double *Y, double *R);   //our FPUT
+void Chain (double t, std::vector<double> &Y, std::vector<double> &R);   //our FPUT
 
-void Chain1 (double t, double *Y, double *R);  //real FPUT
+void Chain1 (double t, std::vector<double> &Y, std::vector<double> &R);  //real FPUT
 
-void SPC (double t, double *Y, double *R);
+void SPC (double t, std::vector<double> &Y, std::vector<double> &R);
 
-void LJ (double t, double *Y, double *R);
+void LJ (double t, std::vector<double> &Y, std::vector<double> &R);
 
-void AlfaBeta (double t, double *Y, double *R);
+void AlfaBeta (double t, std::vector<double> &Y, std::vector<double> &R);
 
-void AlfaBeta_corrected (double t, double *Y, double *R);
+void AlfaBeta_corrected (double t, std::vector<double> &Y, std::vector<double> &R);
 
 // void generateRandomIntegers(int min_val, int max_val, std::vector<int>* random_numbers);
 
