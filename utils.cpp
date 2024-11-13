@@ -17,6 +17,8 @@ double omega_0(double *Y, double T){
 }
 
 
+double TTCF(double (*obs)(double *), double omega, double *Y,double T){
+    return omega*obs(Y);
 double TTCF(double (*obs)(double *), double omega ,double *Y,double T){
     // Function to compute the TTCF
 
@@ -30,5 +32,4 @@ double observable( double *Y){
 
 
     return 1;
-
 };

@@ -122,10 +122,11 @@ int main()
         for (j= 1; j<=N; j++){
         n=k*j;
           for (i= 0; i<dim; ++i){
-            // cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
-            // cdata <<X[n+i+k] - X[n+i]<< "  " << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i])<<endl;
             cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
-          
+            // cdata <<X[n+i+k] - X[n+i]<< "  " 
+            //       << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i]) << " "
+            //       << fi(X[0], X[2])<< "  " 
+            //       << fi(X[k*N], X[k*(N+1)])<<endl;
           }
         }
         cdata << "-------------------"<< endl;
