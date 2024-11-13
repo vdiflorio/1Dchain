@@ -109,91 +109,90 @@ int main()
   for(h=1; h<=step; h++){
     if(h%(int(step)/100) == 0){
       cout << progress << "% executed" << endl; // Show the progress of simulation 
+      cout << TTCF(observable, 10, X, 1) << endl;
       progress++;
     }
-    RK4Step(t, X, AlfaBeta, dt,neq);   // integration of the function
+    RK4Step(t, X, Chain1, dt,neq);   // integration of the function
     // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
     t += dt; 
     
     if(h>no_step){  //no prendo dati per un numero di passi uguali a no_step  
 
-      if (drand48()<0.002){
+      if (drand48()<0.02){
         for (j= 1; j<=N; j++){
         n=k*j;
           for (i= 0; i<dim; ++i){
             // cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
             // cdata <<X[n+i+k] - X[n+i]<< "  " << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i])<<endl;
-            cdata <<X[n+i+k] - X[n+i]<< "  " 
-                  << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i]) << " "
-                  << fi(X[0], X[2])<< "  " 
-                  << fi(X[k*N], X[k*(N+1)])<<endl;
+            cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
+          
           }
         }
         cdata << "-------------------"<< endl;
       }
 
 
-      for(j=0; j<=N+1; j++){
-        n = k*j;
-        l = dim*j;
-        for(i=0; i<dim; i++){
-          Xm[l+i] += X[n+i]; 
-          Var[l+i] += X[n+i]*X[n+i];
-        }
-      }
-      for(j=0; j<N;j++){
-        n = k*(j+1);
-        for(i=0; i<dim; i++){          
-          T[j] += X[n+dim+i]*X[n+dim+i]/m;
-        } 
-      }  
+      // for(j=0; j<=N+1; j++){
+      //   n = k*j;
+      //   l = dim*j;
+      //   for(i=0; i<dim; i++){
+      //     Xm[l+i] += X[n+i]; 
+      //     Var[l+i] += X[n+i]*X[n+i];
+      //   }
+      // }
+      // for(j=0; j<N;j++){
+      //   n = k*(j+1);
+      //   for(i=0; i<dim; i++){          
+      //     T[j] += X[n+dim+i]*X[n+dim+i]/m;
+      //   } 
+      // }  
     }   
   }
   
   
-  for(i=0;i<(N+2)*dim; i++){
-    Xm[i]   = Xm[i]/(double)count;
-    Var[i]  = Var[i]/(double)count - Xm[i]*Xm[i] ;
-    Dev[i]  = sqrt(Var[i]);
-  }
+  // for(i=0;i<(N+2)*dim; i++){
+  //   Xm[i]   = Xm[i]/(double)count;
+  //   Var[i]  = Var[i]/(double)count - Xm[i]*Xm[i] ;
+  //   Dev[i]  = sqrt(Var[i]);
+  // }
   
-  for(j=0; j<=N+1; j++){
-    n = dim*j;
-    for(i=0; i<dim; i++){
-      R_m[n+i] = Xm[n+i+dim] - Xm[n+i];
-    }
-  }
+  // for(j=0; j<=N+1; j++){
+  //   n = dim*j;
+  //   for(i=0; i<dim; i++){
+  //     R_m[n+i] = Xm[n+i+dim] - Xm[n+i];
+  //   }
+  // }
    
       
-  for(j=0; j<N; j++){
-    l = dim*(j+1);
-    S[j] =0.0;
-    for(i=0; i<dim; i++){
-      S[j] += R_m[l+i]*R_m[l+i];  
-    }
-    S[j] = sqrt(S[j]);
-    T[j] = T[j]/(double)count;
-  }   
+  // for(j=0; j<N; j++){
+  //   l = dim*(j+1);
+  //   S[j] =0.0;
+  //   for(i=0; i<dim; i++){
+  //     S[j] += R_m[l+i]*R_m[l+i];  
+  //   }
+  //   S[j] = sqrt(S[j]);
+  //   T[j] = T[j]/(double)count;
+  // }   
   
-  for(j=0; j<N; j++){        
-    ddata  << 1.0*j/N << " " << S[j] << endl;     
-  }
-  ddata << endl << endl;
+  // for(j=0; j<N; j++){        
+  //   ddata  << 1.0*j/N << " " << S[j] << endl;     
+  // }
+  // ddata << endl << endl;
   
   
-  //linear fit of linear relation and density
-  double c1, c2;
+  // //linear fit of linear relation and density
+  // double c1, c2;
   
-  linear_fit (N, S, T, c1, c2);
-  cout <<"c1 = "<< c1 << "   c2 = " << c2<<endl;
+  // linear_fit (N, S, T, c1, c2);
+  // cout <<"c1 = "<< c1 << "   c2 = " << c2<<endl;
   
-  for(j=0; j<N; j++){        
-    ddata  << 1.0*j/N << " " << c1*S[j] + c2 << endl;   
-    tdata << 1.0*j/N << " " << T[j] << endl;  
-  }
+  // for(j=0; j<N; j++){        
+  //   ddata  << 1.0*j/N << " " << c1*S[j] + c2 << endl;   
+  //   tdata << 1.0*j/N << " " << T[j] << endl;  
+  // }
 
-  ddata <<endl<<endl;
-  ddata << c1 << " " << c2 <<endl;
+  // ddata <<endl<<endl;
+  // ddata << c1 << " " << c2 <<endl;
   
   // ////////////////////////////////////////////////////////////////  
   
