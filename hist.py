@@ -11,6 +11,8 @@ beta = 1.0  # Inverse temperature
 # Step 1: Load the data and process it as before
 pressione_vect = []
 differenze_vect =[]
+f_l_vect =[]
+f_r_vect =[]
 
 
 with open('condizioni_iniziali.dat', 'r') as f:  # Replace 'your_file.txt' with your actual filename
@@ -19,8 +21,12 @@ with open('condizioni_iniziali.dat', 'r') as f:  # Replace 'your_file.txt' with 
         if line and '--' not in line:  # Ignore separator lines
             position = float(line.split()[0])  # Extract the position (first column)
             pressione_tmp = float(line.split()[1])  # Extract the position (first column)
+            f_l_tmp = float(line.split()[2])
+            f_r_tmp = float(line.split()[3])
             differenze_vect.append(position)
             pressione_vect.append(pressione_tmp)
+            f_l_vect.append(f_l_tmp)
+            f_r_vect.append(f_r_tmp)
 
 # Step 2: Calculate differences within each block
 # position_diffs = []
@@ -29,9 +35,12 @@ with open('condizioni_iniziali.dat', 'r') as f:  # Replace 'your_file.txt' with 
 #         diffs = np.diff(block)
 #         position_diffs.extend(diffs)
 
+pressione = np.mean(f_r_vect)
+
 print(np.mean(differenze_vect))
-pressione = np.mean(pressione_vect)
-print(pressione)
+print(np.mean(f_l_vect))
+print(np.mean(pressione))
+print(np.mean(pressione_vect))
 
 
 # Step 3: Plot histogram of position differences
@@ -40,7 +49,7 @@ plt.hist(differenze_vect, bins=50, density=True, alpha=0.6, edgecolor='black', l
 
 # Step 4: Define the energy function and density based on Boltzmann distribution
 def energy(x, a, b, press):
-    return 0.5*(x-1)**2 + a * (x-1)**3*1/3 + b * 0.25*(x-1)**4 -(press)*(x-1)
+    return 0.5*(x-1)**2 + a * (x-1)**3*1/3 + b * 0.25*(x-1)**4 -press*(x)
 
 def density(x, a, b, beta, press):
     return np.exp(-beta * energy(x, a, b, press))

@@ -7,7 +7,7 @@
 
 
 void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q);
-double fi (double xi, double xip1, double xim1);
+double fi (double xi, double xip1);
 
 
 
@@ -35,7 +35,7 @@ int main()
   double   X[neq];
   long int step = 80000000;
   long int h;
-  long int no_step  = 40000000;
+  long int no_step  = 30000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
@@ -111,6 +111,7 @@ int main()
       progress++;
     }
     RK4Step(t, X, AlfaBeta, dt,neq);   // integration of the function
+    // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
     t += dt; 
     
     if(h>no_step){  //no prendo dati per un numero di passi uguali a no_step  
@@ -120,7 +121,11 @@ int main()
         n=k*j;
           for (i= 0; i<dim; ++i){
             // cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
-            cdata <<X[n+i+k] - X[n+i]<< "  " << fi(X[n+i], X[n+i+k], X[n+i-k])<<endl;
+            // cdata <<X[n+i+k] - X[n+i]<< "  " << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i])<<endl;
+            cdata <<X[n+i+k] - X[n+i]<< "  " 
+                  << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i]) << " "
+                  << fi(X[0], X[2])<< "  " 
+                  << fi(X[k*N], X[k*(N+1)])<<endl;
           }
         }
         cdata << "-------------------"<< endl;
@@ -223,18 +228,16 @@ void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q){
   q = (sumY - beta1*sumX)/ndata;
 }
 
-double fi (double xi, double xip1, double xim1){
+double fi (double xi, double xip1){
   double r1,r2;
   r1 = (xip1 - xi - a);
-  r2 = (xi - xim1 - a);
-  //forza totale
-  // return chi*(xip1 + xim1 - 2.0*xi ) + 
-  //            Alpha*(r1*r1 - r2*r2) + 
-  //            bet*(r1*r1*r1 - r2*r2*r2);
   
-  //forza destra
+  // // forza destra alfa-beta
   return chi*r1 + 
              Alpha*(r1*r1) + 
              bet*(r1*r1*r1);
+  // // forza destra beta
+  // return chi*r1 + 
+  //            bet*(r1*r1*r1);
  
 }
