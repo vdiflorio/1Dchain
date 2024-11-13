@@ -4,6 +4,7 @@
 
 #include "ode_solvers.h"
 #include "ode_func.h"
+#include "utils.h"
 
 
 void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q);
