@@ -2,6 +2,7 @@
 #include "ode_func.h"
 
 double omega_0(double *Y, double T){
+    // Function to compute the dissipation function wrt the initial density
     int     j,k;   
     k = 2*dim;
     double  omega=0.0;
@@ -13,7 +14,9 @@ double omega_0(double *Y, double T){
     } 
 
     return omega;
+}
 
 
+double TTCF(double (*obs) (double *), double (*omega)( double *, double )){
 
 }
