@@ -1,14 +1,15 @@
-CXX=c++
-
+CXX=mpicxx
+CPPFLAGS=-I/opt/local/include
+LIBS=-lmpi
 CXXFLAGS= -std=c++17 -Ofast -mtune=native -march=native
 
 all : fput
 
 %.o : %.cpp
-	$(CXX) -c $(CXXFLAGS) $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $<
 
-fput : condizioni_iniziali.o $(patsubst %.cpp, %.o, $(wildcard *.cpp))
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ 
+fput : main.o $(patsubst %.cpp, %.o, $(wildcard *.cpp))
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $? -o $@ $(LIBS)
 
 .PHONY : clean distclean
 

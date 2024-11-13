@@ -1,7 +1,8 @@
 #include "ode_solvers.h"
 
 
-void EulerStep (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+void EulerStep (double t, std::vector<double>  &Y, 
+                std::function<void(double, std::vector<double> &, std::vector<double> &)> dYdt,
                 double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
@@ -19,7 +20,8 @@ void EulerStep (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vec
 
 
 
-void RK2Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+void RK2Step (double t, std::vector<double>  &Y, 
+                std::function<void(double, std::vector<double> &, std::vector<double> &)> dYdt,
                 double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
@@ -43,7 +45,8 @@ void RK2Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vecto
 
 
 
-void RK4Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+void RK4Step (double t, std::vector<double>  &Y, 
+                std::function<void(double, std::vector<double> &, std::vector<double> &)> dYdt,
                 double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
@@ -80,7 +83,8 @@ void RK4Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vecto
 }
 
 
-void RK5Step (double t, std::vector<double>  &Y, void (*dYdt)(double, std::vector<double> &, std::vector<double> &),
+void RK5Step (double t, std::vector<double>  &Y, 
+                std::function<void(double, std::vector<double> &, std::vector<double> &)> dYdt,
                 double dt, int neq)
 // Take one step dt using Euler method for the solution of dY/dt = rhs.
 // Here neq is the number of ODE (the dimensionality of Y[]) and *dYdt() is 
