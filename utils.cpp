@@ -31,7 +31,7 @@ double observable( double *Y){
 };
 
 
-void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condizioni, int neq) {
+void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {
   
   std::ifstream inFile("condizioni.bin", std::ios::binary);
   if (!inFile) {
@@ -51,8 +51,11 @@ void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condi
   // Calcola il numero di condizioni nel file
   int numero_condizioni_tot = file_size / dimensione_condizione;
 
-  // // Verifica se il numero di condizioni nel file è corretto
-  // std::cout << "Numero di condizioni nel file: " << numero_condizioni_tot << std::endl;  
+  if (num_condizioni > numero_condizioni_tot) {
+    std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
+    inFile.close();
+    return;
+  }
 
 
   // Generatore di numeri casuali
@@ -60,9 +63,8 @@ void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condi
   std::uniform_int_distribution<int> dist(0, numero_condizioni_tot - 1); // Seleziona indici casuali
 
   // Riservare spazio per le condizioni
-  condizioni.reserve(num_condizioni);
+  condizioni.reserve(num_condizioni * neq);
 
-  std::vector<double> condizione_temporanea(neq);
   for (int i = 0; i < num_condizioni; ++i) {
     int indice_casuale = dist(gen); // Seleziona un indice casuale
 
@@ -72,31 +74,28 @@ void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condi
     // Posizionarsi nel file all'offset desiderato
     inFile.seekg(offset);
 
-    // Leggere la condizione in una variabile temporanea
-    inFile.read(reinterpret_cast<char*>(condizione_temporanea.data()), neq * sizeof(double));
+    // Leggere la condizione direttamente nel vettore 1D
+    inFile.read(reinterpret_cast<char*>(&condizioni[i * neq]), neq * sizeof(double));
     // Verifica se la lettura è riuscita
     if (!inFile) {
       std::cerr << "Errore durante la lettura del file!" << std::endl;
       break;
     }
 
-    // Aggiungere la condizione letta al vettore
-    condizioni.push_back (condizione_temporanea);
   }
   
 
   inFile.close();
 
 
-  // Stampare le 10 condizioni casuali per verificarne il contenuto
-  // for (const auto& condizione : condizioni) {
-  //   for (double valore : condizione) {
-  //       std::cout << std::setprecision(3) << valore << " ";
+  // // Stampare le condizioni casuali per verificarne il contenuto
+  // for (int ii = 0; ii < num_condizioni; ++ii) {
+  //   for (int jj= 0; jj < neq; ++jj) {
+  //       std::cout << std::setprecision(3) << condizioni[ii * neq + jj] << " ";
   //   }
   //   std::cout << std::endl;
   // }
 }
-
 
 
 int save_condizioni_iniziali(int num_catene)
@@ -154,20 +153,20 @@ int save_condizioni_iniziali(int num_catene)
 
     //EVOLUZIONE SISTEMA
     for(h=1; h<=step - no_step; h++){
-      if(h%(int(step)/100) == 0){
-        std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
-        progress++;
-      }
+      // if(h%(int(step)/100) == 0){
+      //   std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
+      //   progress++;
+      // }
       RK4Step(t, X, Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
       t += dt; 
     }
     for(h=step - no_step; h<=step; h++){  
       
-      if(h%(int(step)/100) == 0){
-        std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
-        progress++;
-      }  
+      // if(h%(int(step)/100) == 0){
+      //   std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
+      //   progress++;
+      // }  
       RK4Step(t, X, Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
       t += dt; 
@@ -189,7 +188,7 @@ int save_condizioni_iniziali(int num_catene)
   }
 
   // Scrivere le condizioni nel file, una per volta
-  std::cout << "\n\n num condizioni salvate: " << pd << std::endl;
+  std::cout << "\nNumero condizioni salvate: " << pd << std::endl;
   for (const auto& condizione : condizioni) {
       outFile.write(reinterpret_cast<const char*>(condizione.data()), neq * sizeof(double));
   }

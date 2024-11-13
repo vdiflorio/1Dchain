@@ -8,7 +8,7 @@ double TTCF(double (*obs)(std::vector<double> &), double omega ,std::vector<doub
 
 double observable(std::vector<double> &Y);
 
-void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condizioni, int neq);
+void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq);
 
 int save_condizioni_iniziali(int num_catene);
 
