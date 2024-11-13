@@ -17,11 +17,10 @@ double omega_0(double *Y, double T){
 }
 
 
-double TTCF(double (*obs)(double *), double omega ,double *Y,double T){
-    return obs(Y);
+double TTCF(double (*obs)(double *), double omega, double *Y,double T){
+    return omega*obs(Y);
 }
 
 double observable( double *Y){
     return 1;
-
 };
