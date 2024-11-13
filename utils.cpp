@@ -18,10 +18,17 @@ double omega_0(double *Y, double T){
 
 
 double TTCF(double (*obs)(double *), double omega ,double *Y,double T){
-    return obs(Y);
+    // Function to compute the TTCF
+
+
+
+    return obs(Y)*omega;
 }
 
 double observable( double *Y){
+    // Function to compute any observable, that is function of the phase space state
+
+
     return 1;
 
 };
