@@ -51,8 +51,8 @@ void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condi
   // Calcola il numero di condizioni nel file
   int numero_condizioni_tot = file_size / dimensione_condizione;
 
-  // Verifica se il numero di condizioni nel file è corretto
-  std::cout << "Numero di condizioni nel file: " << numero_condizioni_tot << std::endl;  
+  // // Verifica se il numero di condizioni nel file è corretto
+  // std::cout << "Numero di condizioni nel file: " << numero_condizioni_tot << std::endl;  
 
 
   // Generatore di numeri casuali
@@ -89,12 +89,12 @@ void read_conditions(std::vector<std::vector<double>>& condizioni, int num_condi
 
 
   // Stampare le 10 condizioni casuali per verificarne il contenuto
-  for (const auto& condizione : condizioni) {
-    for (double valore : condizione) {
-        std::cout << std::setprecision(3) << valore << " ";
-    }
-    std::cout << std::endl;
-  }
+  // for (const auto& condizione : condizioni) {
+  //   for (double valore : condizione) {
+  //       std::cout << std::setprecision(3) << valore << " ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 }
 
 
