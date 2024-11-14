@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 4;  // numero di catene
+  int num_condizioni = 10;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
@@ -93,23 +93,40 @@ int main(int argc, char **argv) {
   double ttcf_mean_prev = 0;
   double ttcf_mean_integral = 0;
 
-  for (int i = 0; i < X_local.size(); ++i) {
-    omega_vec[i] = omega_0(X_local[i], Tl);
-  }
+  double obs_mean = 0;
+  double obs_mean_prev = 0;
+  double obs_mean_integral = 0;
 
-  for (int i = 0; i < X_local.size(); ++i) 
+  double omega_mean = 0;
+
+  for (int i = 0; i < X_local.size(); ++i) {
+    omega_vec[i] = omega_0(X_local[i], Tl); 
     ttcf_mean_prev += TTCF(observable, omega_vec[i],X_local[i], Tl);
+    obs_mean_prev += observable (X_local[i]);
+    omega_mean += omega_vec[i];
+  }
 
   MPI_Barrier (mpicomm);
   if (rank == 0) {
     MPI_Reduce (MPI_IN_PLACE, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
+    MPI_Reduce (MPI_IN_PLACE, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
+    MPI_Reduce (MPI_IN_PLACE, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
   } else {
     MPI_Reduce (&ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
+    MPI_Reduce (&obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
+    MPI_Reduce (&omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
   }
   if (rank == 0){
     ttcf_mean_prev = ttcf_mean_prev/num_condizioni;
+    obs_mean_prev = obs_mean_prev/num_condizioni;
+    omega_mean = omega_mean/num_condizioni;
+    std::cout << "Media della omega: " << omega_mean << std::endl;
   }
 
 
@@ -119,30 +136,42 @@ int main(int argc, char **argv) {
   double dt = 1.e-3;
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
+    obs_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
       RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
       t_vec[i] += dt;
       ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
+      obs_mean += observable(X_local[i]);
     }
     // stop 
     MPI_Barrier (mpicomm);
     if (rank == 0) {
       MPI_Reduce (MPI_IN_PLACE, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                   mpicomm);
+      MPI_Reduce (MPI_IN_PLACE, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+                  mpicomm);
+
     } else {
       MPI_Reduce (&ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+                  mpicomm);
+      MPI_Reduce (&obs_mean, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                   mpicomm);
     }
     if (rank == 0){
       ttcf_mean = ttcf_mean/num_condizioni;
+      obs_mean = obs_mean/num_condizioni;
       // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
       ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
+      obs_mean_integral += (obs_mean + obs_mean_prev)*dt*0.5;
       // salva su file ogni ttcf_mean_integral
       // salva su file ttcf_mean
-      fdata << t_vec[0] << " "<<ttcf_mean << "  " << ttcf_mean_integral << std::endl;
+      fdata << t_vec[0] << " "<<ttcf_mean 
+                        << "  " << ttcf_mean_integral
+                        << "  " << ttcf_mean_integral - obs_mean_integral*omega_mean << std::endl;
     }
     ttcf_mean_prev = ttcf_mean;
+    obs_mean_prev = obs_mean;
   }
 
   if (rank == 0)

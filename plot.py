@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 data = np.loadtxt('ttcf.dat')
 
 # Assegna ogni colonna a una variabile
-tempo = data[0:-1:100, 0]
-valore1 = data[0:-1:100, 1]
-valore2 = data[0:-1:100, 2]
+tempo = data[0:-1:10, 0]
+valore1 = data[0:-1:10, 1]
+valore2 = data[0:-1:10, 2]
+valore3 = data[0:-1:10, 3]
 
 # Crea il grafico
 plt.figure()
-plt.plot(tempo, valore1, label='Valore 1')
-# plt.plot(tempo, valore2, label='Valore 2')
+plt.plot(tempo, valore3, label='Valore 3')
+plt.plot(tempo, valore2, label='Valore 2')
 
 # Etichetta gli assi
 plt.xlabel('Tempo')
