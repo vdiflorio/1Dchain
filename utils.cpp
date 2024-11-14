@@ -22,9 +22,8 @@ double omega_0(std::vector<double> &Y, double T){
 }
 
 
-double TTCF(double (*obs)(std::vector<double> &), double omega,std::vector<double> &Y,double T){
-    return omega*obs(Y);
-double TTCF(double (*obs)(double *), double omega ,double *Y,double T){
+
+double TTCF(std::function<double(std::vector<double> &)> obs, double omega ,std::vector<double> &Y,double T){
     // Function to compute the TTCF
 
 
@@ -32,11 +31,13 @@ double TTCF(double (*obs)(double *), double omega ,double *Y,double T){
     return obs(Y)*omega;
 }
 
-double observable( double *Y){
+double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
+    int k = 2*dim;
 
 
-    return 1;
+    return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]/m+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
+  ;
 };
 
 

@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <functional>
 
 void EulerStep (double t, std::vector<double>  &Y, 
                 std::function<void(double, std::vector<double> &, std::vector<double> &)> dYdt,

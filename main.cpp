@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
   // genera le condizioni iniziali
   if (rank == 0 && true){
-    std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << "catene";
+    std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << " catene";
   	save_condizioni_iniziali(num_catene);
   }
 
