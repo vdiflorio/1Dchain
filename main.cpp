@@ -19,14 +19,14 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 8000000;
+  long int step = 800000;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 9;  // numero di catene
+  int num_condizioni = 4;  // numero di catene
 
   // genera le condizioni iniziali
-  if (rank == 0 && true){
+  if (rank == 0 && false){
     std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << " catene";
   	save_condizioni_iniziali(num_catene);
   }
@@ -115,13 +115,14 @@ int main(int argc, char **argv) {
 
   // Evolvere le condizioni iniziali
   double t = 0.0;
+  std::vector<double> t_vec (X_local.size(),0);
   double dt = 1.e-3;
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
-      RK4Step(t, X_local[i], Chain1, dt,neq);   // integration of the function
+      RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
-      t += dt;
+      t_vec[i] += dt;
       ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
     }
     // stop 
@@ -139,7 +140,7 @@ int main(int argc, char **argv) {
       ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
       // salva su file ogni ttcf_mean_integral
       // salva su file ttcf_mean
-      fdata << ttcf_mean << "  " << ttcf_mean_integral << std::endl;
+      fdata << t_vec[0] << " "<<ttcf_mean << "  " << ttcf_mean_integral << std::endl;
     }
     ttcf_mean_prev = ttcf_mean;
   }

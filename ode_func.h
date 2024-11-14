@@ -15,7 +15,7 @@
 #define  dim     1    //spazio dimensioni di oscillazione
 #define  thetaL  1.0  //tempo di rilassamento termost sx
 #define  thetaR  1.0  //tempo di rilassamento termost dx
-#define  Tl      1.0  //Temp termostato sx
+#define  Tl      5.0  //Temp termostato sx
 #define  Tr      1.0  //Temp termostato dx
 #define  Kb      1.0  //Costante di Boltzmann
 #define  res     1.0
