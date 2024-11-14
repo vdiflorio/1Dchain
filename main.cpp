@@ -1,244 +1,102 @@
-//
-//
-////////////////////////////////////////////////////////////////////////////
-
 #include "ode_solvers.h"
 #include "ode_func.h"
 #include "utils.h"
 
+#include <random>
+#include <mpi.h>
 
-void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q);
-double fi (double xi, double xip1);
+int main(int argc, char **argv) {
+	
+	MPI_Init(&argc, &argv);
+
+  int rank, size;
+  MPI_Comm mpicomm = MPI_COMM_WORLD;
+  MPI_Comm_rank(mpicomm, &rank);
+  MPI_Comm_size(mpicomm, &size);
 
 
-
-int main()
-{
-  ofstream ddata;
-  ofstream tdata;
-  ofstream pdata;   
-  ofstream cdata;
-  ddata.open("densita.dat");
-  tdata.open("temperatura.dat"); 
-  pdata.open("dati_iniziali.dat");
-  cdata.open("condizioni_iniziali.dat");
-
-  ddata   << setiosflags(ios::scientific); 
-  ddata   << setprecision(8);
-  tdata  << setiosflags(ios::scientific); 
-  tdata  << setprecision(8);
-  pdata   << setiosflags(ios::scientific); 
-  pdata   << setprecision(8);
-  cdata   << setiosflags(ios::scientific); 
-  cdata   << setprecision(8);
 
   int      neq = (N+2)*2*dim + 2;
-  double   X[neq];
-  long int step = 80000000;
+  std::vector<double> X(neq);
+  long int step = 8000000;
   long int h;
-  long int no_step  = 30000000;
-  long int progress = 0;
-  int      k,i,j,l,n;
-  double   t, dt;
-  double   X0[dim];  //unità di spaziatura
-  double   X_eq[dim*(N+2)]; //vettore contenete posizioni di equilibrio meccanico (potrebbe essere cancellato)
-  double   T[N];
-  double   R[dim*(N+2)];
-  double   R_m[dim*(N+2)];
-  double   S[N];
-  long int count = step - no_step;  //# di steps per le medie temporali
-  double   Xm[(N+2)*dim];
-  double   Var[(N+2)*dim], Dev[(N+2)*dim]; //varianza nello spostamento
-  
-  k  = 2*dim;   
-  t  = 0.0;    //tempo zero
-  dt = 1.e-3;  //intervallo di integrazione
+  std::vector<double> X_tot;
+  int num_catene = 1;  // numero di catene per generare CI
+  int num_condizioni = 9;  // numero di catene
 
-  X0[0] = a;   // nodes only along x-axis
-  #if dim > 1
-   for(i = 1; i<dim; i++) {X0[i] = 0.0;}
-  #endif
-  
-  
-  // INIZILIZZAZIONE VETTORI
-  for(i=0; i < neq; i++) { X[i] = 0.0; } 
-  for(i=0;i<N; i++) { 
-    T[i]=0.0; 
-    S[i]  = 0.0;
+  // genera le condizioni iniziali
+  if (rank == 0 && true){
+    std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << "catene";
+  	save_condizioni_iniziali(num_catene);
   }
-  for(i=0;i<(N+2)*dim; i++){
-    R_m[i] = 0.0;
-    R[i]   = 0.0;  
-    Xm[i]  = 0.0;
-    Var[i] = 0.0;
-    Dev[i] = 0.0;
-  }
-  
-  X[k*(N+2)]   = 1.0; //inizializzazione termostato di sinistra
-  X[k*(N+2)+1] = 1.0; //inizializzazione termostato di destra
-  ////////////////////////////////////////////////////////////////
-  
-  // Nodes position at mechanical equilibrium (potrebbe non essere utile per il codice)
-  for(j=0;j<=N+1; j++){
-    l = dim*j;
-    for(i=0;i<dim; i++){
-      X_eq[l+i] = j*X0[i];
-    }
-  }
-  ////////////////////////////////////////////////////////////////
-  
-  double alfa = 1.0;  // fattore di stretching
-  
-  // CONDIZIONE INIZIALE per posizione e velocità
-  srand48(time(NULL));          // Initialize the sequence
-  for (j= 1; j<=N; j++){
-    n=k*j;
-    l=dim*j;
-    for (i= 0; i<dim; ++i){
-      X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4;  //posizione
-      X[n+i+dim]= drand48()*0.2 - 0.1;  //velocità
-      pdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
-    }
-  }
-  X[(N+1)*k] = X_eq[(N+1)*dim]*alfa; //l'ultima particella è fissa
-  
-  
-  pdata <<endl<<endl;
 
-  //EVOLUZIONE SISTEMA
-  for(h=1; h<=step; h++){
-    if(h%(int(step)/100) == 0){
-      cout << progress << "% executed" << endl; // Show the progress of simulation 
-      cout << TTCF(observable, 10, X, 1) << endl;
-      progress++;
-    }
-    RK4Step(t, X, Chain1, dt,neq);   // integration of the function
-    // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
-    t += dt; 
-    
-    if(h>no_step){  //no prendo dati per un numero di passi uguali a no_step  
-
-      if (drand48()<0.02){
-        for (j= 1; j<=N; j++){
-        n=k*j;
-          for (i= 0; i<dim; ++i){
-            cdata <<X[n+i]<< "  " << X[n+i+dim]<<endl;
-            // cdata <<X[n+i+k] - X[n+i]<< "  " 
-            //       << fi(X[n+i], X[n+i+k]) - fi(X[n+i-k],X[n+i]) << " "
-            //       << fi(X[0], X[2])<< "  " 
-            //       << fi(X[k*N], X[k*(N+1)])<<endl;
-          }
-        }
-        cdata << "-------------------"<< endl;
-      }
-
-
-      // for(j=0; j<=N+1; j++){
-      //   n = k*j;
-      //   l = dim*j;
-      //   for(i=0; i<dim; i++){
-      //     Xm[l+i] += X[n+i]; 
-      //     Var[l+i] += X[n+i]*X[n+i];
-      //   }
-      // }
-      // for(j=0; j<N;j++){
-      //   n = k*(j+1);
-      //   for(i=0; i<dim; i++){          
-      //     T[j] += X[n+dim+i]*X[n+dim+i]/m;
-      //   } 
-      // }  
-    }   
+  // Solo il processo 0 legge il file binario
+  if (rank == 0) {
+  	std::cout << "\nnumero di catene scelto: " << num_condizioni <<std::endl<<std::endl;
+    read_conditions(X_tot, num_condizioni, neq);
   }
-  
-  
-  // for(i=0;i<(N+2)*dim; i++){
-  //   Xm[i]   = Xm[i]/(double)count;
-  //   Var[i]  = Var[i]/(double)count - Xm[i]*Xm[i] ;
-  //   Dev[i]  = sqrt(Var[i]);
-  // }
-  
-  // for(j=0; j<=N+1; j++){
-  //   n = dim*j;
-  //   for(i=0; i<dim; i++){
-  //     R_m[n+i] = Xm[n+i+dim] - Xm[n+i];
+  MPI_Barrier (mpicomm);
+  // Determinare quante condizioni iniziali deve gestire ogni processo
+  int conditiozioni_per_processo = num_condizioni / size;
+  int remainder = num_condizioni % size;
+  std::vector<int> sendcounts(size, conditiozioni_per_processo * neq);
+  std::vector<int> displs(size, 0);
+
+  for (int i = 0; i < remainder; ++i) {
+      sendcounts[i] += neq;
+  }
+
+  for (int i = 1; i < size; ++i) {
+    displs[i] = displs[i - 1] + sendcounts[i - 1];
+  }
+
+  int local_conditions = sendcounts[rank] / neq;
+  std::cout << "Rank " << rank << " ha ricevuto " << local_conditions << " catene\n";
+
+  // Vettore locale piatto per ciascun processo
+  std::vector<double> X_local_flat(sendcounts[rank]);
+
+  // Distribuzione dei dati appiattiti
+  MPI_Scatterv(
+    rank == 0 ? X_tot.data() : nullptr, sendcounts.data(), displs.data(), MPI_DOUBLE,
+    X_local_flat.data(), sendcounts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD
+  );
+
+  //pulizia del vettore X_tot
+  std::vector<double>().swap(X_tot);
+
+  // Riorganizzare i dati ricevuti in `std::vector<std::vector<double>>`
+  std::vector<std::vector<double>> X_local(local_conditions, std::vector<double>(neq));
+
+  for (int i = 0; i < local_conditions; ++i) {
+    std::copy(X_local_flat.begin() + i * neq, X_local_flat.begin() + (i + 1) * neq, X_local[i].begin());
+  }
+
+  //pulizia del vettore X_local_flat
+  std::vector<double>().swap(X_local_flat);
+
+  // // Debug: stampa dei dati ricevuti per ciascun rank
+  // for (const auto& cond : X_local) {
+  //   std::cout << "Rank " << rank << " :  ";
+  //   for (double val : cond) {
+  //     std::cout << std::setprecision(3)<< val << " ";
   //   }
-  // }
-   
-      
-  // for(j=0; j<N; j++){
-  //   l = dim*(j+1);
-  //   S[j] =0.0;
-  //   for(i=0; i<dim; i++){
-  //     S[j] += R_m[l+i]*R_m[l+i];  
-  //   }
-  //   S[j] = sqrt(S[j]);
-  //   T[j] = T[j]/(double)count;
-  // }   
-  
-  // for(j=0; j<N; j++){        
-  //   ddata  << 1.0*j/N << " " << S[j] << endl;     
-  // }
-  // ddata << endl << endl;
-  
-  
-  // //linear fit of linear relation and density
-  // double c1, c2;
-  
-  // linear_fit (N, S, T, c1, c2);
-  // cout <<"c1 = "<< c1 << "   c2 = " << c2<<endl;
-  
-  // for(j=0; j<N; j++){        
-  //   ddata  << 1.0*j/N << " " << c1*S[j] + c2 << endl;   
-  //   tdata << 1.0*j/N << " " << T[j] << endl;  
+  //   std::cout << "\n";
   // }
 
-  // ddata <<endl<<endl;
-  // ddata << c1 << " " << c2 <<endl;
-  
-  // ////////////////////////////////////////////////////////////////  
-  
-  ddata.close();
-  tdata.close();  
-  pdata.close();  
-  cdata.close();
-  return 0;
-}
 
-
-
-
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-
-void linear_fit (int ndata, double *X, double *Y, double& beta1, double& q){
- 
-  int  i;
-  double sumX=0, sumX2=0, sumY=0, sumXY=0;
-  
-  /* Calculating Required Sum */
-  for(i=0;i<ndata;i++){
-    sumX  +=  X[i];
-    sumX2 +=  X[i]*X[i];
-    sumY  +=  Y[i];
-    sumXY +=  X[i]*Y[i];
+  // Evolvere le condizioni iniziali
+  double t = 0.0;
+  double dt = 1.e-3;
+  for ( h = 1; h <= step; ++h) {
+    for (int i = 0; i < X_local.size(); ++i) {
+      RK4Step(t, X_local[i], Chain1, dt,neq);   // integration of the function
+      // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
+      t += dt;
+    }
   }
-  /* Calculating m and q */
-  beta1 = (ndata*sumXY-sumX*sumY)/(ndata*sumX2-sumX*sumX);
-  q = (sumY - beta1*sumX)/ndata;
-}
 
-double fi (double xi, double xip1){
-  double r1,r2;
-  r1 = (xip1 - xi - a);
-  
-  // // forza destra alfa-beta
-  return chi*r1 + 
-             Alpha*(r1*r1) + 
-             bet*(r1*r1*r1);
-  // // forza destra beta
-  // return chi*r1 + 
-  //            bet*(r1*r1*r1);
- 
+
+  MPI_Finalize();
+	return 0;
 }
