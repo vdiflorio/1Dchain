@@ -23,7 +23,7 @@ double omega_0(std::vector<double> &Y, double T){
 
 
 
-double TTCF(std::function<double(std::vector<double> &)> obs, double omega ,std::vector<double> &Y,double T){
+double TTCF(std::function<double(std::vector<double>&)> obs, double omega ,std::vector<double> &Y,double T){
     // Function to compute the TTCF
 
 
@@ -35,10 +35,8 @@ double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
     int k = 2*dim;
 
-
-    return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]/m+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
-  ;
-};
+    return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
+}
 
 
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {

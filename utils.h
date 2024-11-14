@@ -4,7 +4,7 @@
 
 double omega_0(std::vector<double> &Y, double T);
 
-double TTCF(std::function<double(std::vector<double> &)> &, double omega ,std::vector<double> &Y,double T);
+double TTCF(std::function<double(std::vector<double> &)> obs, double omega,std::vector<double> &Y,double T);
 
 double observable(std::vector<double> &Y);
 

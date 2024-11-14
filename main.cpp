@@ -4,6 +4,7 @@
 
 #include <random>
 #include <mpi.h>
+#include <fstream>
 
 int main(int argc, char **argv) {
 	
@@ -29,11 +30,14 @@ int main(int argc, char **argv) {
     std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << " catene";
   	save_condizioni_iniziali(num_catene);
   }
-
+  std::ofstream fdata;
   // Solo il processo 0 legge il file binario
   if (rank == 0) {
   	std::cout << "\nnumero di catene scelto: " << num_condizioni <<std::endl<<std::endl;
     read_conditions(X_tot, num_condizioni, neq);
+    fdata.open("ttcf.dat");
+    fdata  << std::setiosflags(std::ios::scientific); 
+    fdata << std::setprecision(4);
   }
   MPI_Barrier (mpicomm);
   // Determinare quante condizioni iniziali deve gestire ogni processo
@@ -84,18 +88,64 @@ int main(int argc, char **argv) {
   //   std::cout << "\n";
   // }
 
+  std::vector<double> omega_vec (X_local.size());
+  double ttcf_mean = 0;
+  double ttcf_mean_prev = 0;
+  double ttcf_mean_integral = 0;
+
+  for (int i = 0; i < X_local.size(); ++i) {
+    omega_vec[i] = omega_0(X_local[i], Tl);
+  }
+
+  for (int i = 0; i < X_local.size(); ++i) 
+    ttcf_mean_prev += TTCF(observable, omega_vec[i],X_local[i], Tl);
+
+  MPI_Barrier (mpicomm);
+  if (rank == 0) {
+    MPI_Reduce (MPI_IN_PLACE, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
+  } else {
+    MPI_Reduce (&ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+                mpicomm);
+  }
+  if (rank == 0){
+    ttcf_mean_prev = ttcf_mean_prev/num_condizioni;
+  }
+
 
   // Evolvere le condizioni iniziali
   double t = 0.0;
   double dt = 1.e-3;
   for ( h = 1; h <= step; ++h) {
+    ttcf_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
       RK4Step(t, X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
       t += dt;
+      ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
     }
+    // stop 
+    MPI_Barrier (mpicomm);
+    if (rank == 0) {
+      MPI_Reduce (MPI_IN_PLACE, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+                  mpicomm);
+    } else {
+      MPI_Reduce (&ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+                  mpicomm);
+    }
+    if (rank == 0){
+      ttcf_mean = ttcf_mean/num_condizioni;
+      // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
+      ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
+      // salva su file ogni ttcf_mean_integral
+      // salva su file ttcf_mean
+      fdata << ttcf_mean << "  " << ttcf_mean_integral << std::endl;
+    }
+    ttcf_mean_prev = ttcf_mean;
   }
 
+  if (rank == 0)
+    fdata.close ();
 
   MPI_Finalize();
 	return 0;
