@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 800000;
+  long int step = 50000;
   long int h;
   std::vector<double> X_tot;
-  int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 4;  // numero di catene
+  int num_catene = 10;  // numero di catene per generare CI
+  int num_condizioni = 100000;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
