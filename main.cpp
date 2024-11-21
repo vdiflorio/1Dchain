@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 20000;  // numero di catene
+  int num_condizioni = 1000000;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
