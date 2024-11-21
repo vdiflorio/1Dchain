@@ -144,8 +144,6 @@ int main(int argc, char **argv) {
       ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
       obs_mean += observable(X_local[i]);
     }
-    // stop 
-    MPI_Barrier (mpicomm);
     if (rank == 0) {
       MPI_Reduce (MPI_IN_PLACE, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                   mpicomm);
@@ -169,9 +167,11 @@ int main(int argc, char **argv) {
       fdata << t_vec[0] << " "<<ttcf_mean 
                         << "  " << ttcf_mean_integral
                         << "  " << ttcf_mean_integral - obs_mean_integral*omega_mean << std::endl;
+      ttcf_mean_prev = ttcf_mean;
+      obs_mean_prev = obs_mean;
     }
-    ttcf_mean_prev = ttcf_mean;
-    obs_mean_prev = obs_mean;
+    // stop 
+    MPI_Barrier (mpicomm);
   }
 
   if (rank == 0)
