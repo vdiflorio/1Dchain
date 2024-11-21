@@ -3,9 +3,12 @@
 #include "ode_solvers.h"
 
 #include "utils.h"
-
+#include <cstdint>
 #include <random>
-
+#include <chrono>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 double omega_0(std::vector<double> &Y, double T){
     // Function to compute the dissipation function wrt the initial density
@@ -40,87 +43,99 @@ double observable(std::vector<double> &Y){
 
 
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {
-  
-  std::ifstream inFile("condizioni.bin", std::ios::binary);
-  if (!inFile) {
-    std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
-    return;
-  }
-  // Dimensione di una condizione in byte
-  int dimensione_condizione = neq * sizeof(double); 
-  
-  // Ottieni la dimensione totale del file
-  // Posizionarsi alla fine del file per ottenere la sua dimensione
-  inFile.seekg(0, std::ios::end);
-  std::streampos file_size = inFile.tellg();
-  inFile.seekg(0, std::ios::beg);  // Torna all'inizio del file
-
-
-  // Calcola il numero di condizioni nel file
-  int numero_condizioni_tot = file_size / dimensione_condizione;
-
-  if (num_condizioni > numero_condizioni_tot) {
-    std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
-    inFile.close();
-    return;
-  }
-
-
-  // Generatore di numeri casuali
-  std::mt19937 gen(std::random_device{}());  // Generatore basato su random_device
-  std::uniform_int_distribution<int> dist(0, numero_condizioni_tot - 1); // Seleziona indici casuali
-
-  // Riservare spazio per le condizioni
-  condizioni.reserve(num_condizioni * neq);
-
-  for (int i = 0; i < num_condizioni/2; ++i) {
-    int indice_casuale = dist(gen); // Seleziona un indice casuale
-
-    // Calcolare l'offset dell'indice
-    std::streampos offset = indice_casuale * dimensione_condizione;
-
-    // Posizionarsi nel file all'offset desiderato
-    inFile.seekg(offset);
-
-    // Leggere la condizione direttamente nel vettore 1D
-    inFile.read(reinterpret_cast<char*>(&condizioni[i * neq]), neq * sizeof(double));
-    
-    // Verifica se la lettura è riuscita
-    if (!inFile) {
-      std::cerr << "Errore durante la lettura del file!" << std::endl;
-      break;
+    // Apri il file binario
+    int fd = open("condizioni.bin", O_RDONLY);
+    if (fd == -1) {
+        std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
+        return;
     }
-  for (int i = num_condizioni / 2; i < num_condizioni; ++i) {
-    for (int j = 0; j < neq; ++j) {
-        if (j < neq - 2) {
-            // For indices 0 to neq-2, take odd components and multiply by -1
-            if (j % 2 != 0) {
-                condizioni[i * neq + j] = -condizioni[(i - num_condizioni / 2) * neq + j];
-            } else {
-                // For even components, just copy
-                condizioni[i * neq + j] = condizioni[(i - num_condizioni / 2) * neq + j];
-            }
-        } else {
-            // For the last two components, multiply by -1
-            condizioni[i * neq + j] = -condizioni[(i - num_condizioni / 2) * neq + j];
+
+    // Ottieni la dimensione del file
+    off_t file_size = lseek(fd, 0, SEEK_END);
+    if (file_size == -1) {
+        std::cerr << "Errore nell'ottenere la dimensione del file!" << std::endl;
+        return;
+    }
+
+    // Mappa il file in memoria
+    void* file_memory = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (file_memory == MAP_FAILED) {
+        std::cerr << "Errore nel mappare il file in memoria!" << std::endl;
+        return;
+    }
+
+    // Dimensione di una condizione in byte
+    int dimensione_condizione = neq * sizeof(double);
+
+    // Calcola il numero di condizioni nel file
+    int numero_condizioni_tot = file_size / dimensione_condizione;
+
+    if (num_condizioni > numero_condizioni_tot) {
+        std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
+        munmap(file_memory, file_size);
+        close(fd);
+        return;
+    }
+
+    // Prepara il vettore per le condizioni
+    condizioni.reserve(num_condizioni * neq);
+
+    // Genera gli indici casuali
+    std::vector<int64_t> indices(num_condizioni / 2);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int64_t> dist(0, num_condizioni - 1);
+    std::generate(indices.begin(), indices.end(), [&]() { return dist(gen); });
+
+    // Timer per calcolare la velocità
+    auto start_time = std::chrono::high_resolution_clock::now();
+    int read_count = 0;
+
+    // Lettura dei dati
+    for (int i = 0; i < num_condizioni / 2; ++i) {
+        // Calcolare l'offset per l'indice casuale
+        std::streampos offset = indices[i] * dimensione_condizione;
+
+        // Leggere direttamente dalla memoria mappata
+        double* condizione_ptr = reinterpret_cast<double*>(static_cast<char*>(file_memory) + offset);
+        std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
+
+        read_count++;
+
+        // Ogni 1000 letture, calcola e stampa la velocità
+        if (read_count == 100000) {
+            auto current_time = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed_time = current_time - start_time;
+            double speed = 100000.0 / elapsed_time.count(); // letture al secondo
+            std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
+
+            // Reset del timer per il prossimo intervallo di 1000 letture
+            start_time = current_time;
+            
         }
     }
-}
-    
 
-  }
-  
+    // Modifica delle condizioni per il secondo ciclo
+    for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
+        for (int j = 0; j < neq; ++j) {
+            if (j < neq - 2) {
+                // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
+                if (j % 2 != 0) {
+                    condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
+                } else {
+                    // Per i componenti pari, copia semplicemente
+                    condizioni[k * neq + j] = condizioni[(k - num_condizioni / 2) * neq + j];
+                }
+            } else {
+                // Per gli ultimi due componenti, moltiplica per -1
+                condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
+            }
+        }
+    }
 
-  inFile.close();
-
-
-  // // Stampare le condizioni casuali per verificarne il contenuto
-  // for (int ii = 0; ii < num_condizioni; ++ii) {
-  //   for (int jj= 0; jj < neq; ++jj) {
-  //       std::cout << std::setprecision(3) << condizioni[ii * neq + jj] << " ";
-  //   }
-  //   std::cout << std::endl;
-  // }
+    // Libera la memoria mappata e chiudi il file
+    munmap(file_memory, file_size);
+    close(fd);
 }
 
 
