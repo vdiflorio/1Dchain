@@ -73,7 +73,7 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
   // Riservare spazio per le condizioni
   condizioni.reserve(num_condizioni * neq);
 
-  for (int i = 0; i < num_condizioni; ++i) {
+  for (int i = 0; i < num_condizioni/2; ++i) {
     int indice_casuale = dist(gen); // Seleziona un indice casuale
 
     // Calcolare l'offset dell'indice
@@ -84,11 +84,29 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
 
     // Leggere la condizione direttamente nel vettore 1D
     inFile.read(reinterpret_cast<char*>(&condizioni[i * neq]), neq * sizeof(double));
+    
     // Verifica se la lettura è riuscita
     if (!inFile) {
       std::cerr << "Errore durante la lettura del file!" << std::endl;
       break;
     }
+  for (int i = num_condizioni / 2; i < num_condizioni; ++i) {
+    for (int j = 0; j < neq; ++j) {
+        if (j < neq - 2) {
+            // For indices 0 to neq-2, take odd components and multiply by -1
+            if (j % 2 != 0) {
+                condizioni[i * neq + j] = -condizioni[(i - num_condizioni / 2) * neq + j];
+            } else {
+                // For even components, just copy
+                condizioni[i * neq + j] = condizioni[(i - num_condizioni / 2) * neq + j];
+            }
+        } else {
+            // For the last two components, multiply by -1
+            condizioni[i * neq + j] = -condizioni[(i - num_condizioni / 2) * neq + j];
+        }
+    }
+}
+    
 
   }
   
@@ -110,9 +128,9 @@ int save_condizioni_iniziali(int num_catene)
 {
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 8000000;
+  long int step = 80000000;
   long int h;
-  long int no_step  = 3000000;
+  long int no_step  = 10000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
@@ -178,7 +196,7 @@ int save_condizioni_iniziali(int num_catene)
       RK4Step(t, X, Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
       t += dt; 
-      if (drand48()<0.0001){
+      if (drand48()<0.01){
         condizioni.push_back(X);
         pd++;
       }
