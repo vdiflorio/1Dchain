@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 50000;
+  long int step = 3000000;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 10;  // numero di catene
+  int num_condizioni = 20000;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < X_local.size(); ++i) {
     omega_vec[i] = omega_0(X_local[i], Tl); 
     ttcf_mean_prev += TTCF(observable, omega_vec[i],X_local[i], Tl);
-    obs_mean_prev += observable (X_local[i]);
+    // obs_mean_prev += observable (X_local[i]);
     omega_mean += omega_vec[i];
   }
 
@@ -110,15 +110,15 @@ int main(int argc, char **argv) {
   if (rank == 0) {
     MPI_Reduce (MPI_IN_PLACE, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
-    MPI_Reduce (MPI_IN_PLACE, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
+    // MPI_Reduce (MPI_IN_PLACE, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+    //             mpicomm);
     MPI_Reduce (MPI_IN_PLACE, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
   } else {
     MPI_Reduce (&ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
-    MPI_Reduce (&obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
+    // MPI_Reduce (&obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
+    //             mpicomm);
     MPI_Reduce (&omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                 mpicomm);
   }
@@ -133,7 +133,9 @@ int main(int argc, char **argv) {
   // Evolvere le condizioni iniziali
   double t = 0.0;
   std::vector<double> t_vec (X_local.size(),0);
-  double dt = 1.e-3;
+  double dt = 1.e-4;
+  double start_time = MPI_Wtime();  // Start timer for ETA calculation
+  bool eta_printed = false;         // Flag to print ETA only once
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
     obs_mean = 0;
@@ -142,40 +144,59 @@ int main(int argc, char **argv) {
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
       t_vec[i] += dt;
       ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
-      obs_mean += observable(X_local[i]);
+      // obs_mean += observable(X_local[i]);
     }
     if (rank == 0) {
       MPI_Reduce (MPI_IN_PLACE, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                   mpicomm);
-      MPI_Reduce (MPI_IN_PLACE, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                  mpicomm);
+      // MPI_Reduce (MPI_IN_PLACE, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+      //             mpicomm);
 
     } else {
       MPI_Reduce (&ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
                   mpicomm);
-      MPI_Reduce (&obs_mean, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                  mpicomm);
+      // MPI_Reduce (&obs_mean, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
+      //             mpicomm);
     }
     if (rank == 0){
       ttcf_mean = ttcf_mean/num_condizioni;
-      obs_mean = obs_mean/num_condizioni;
+      // obs_mean = obs_mean/num_condizioni;
       // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
       ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
-      obs_mean_integral += (obs_mean + obs_mean_prev)*dt*0.5;
+      // obs_mean_integral += (obs_mean + obs_mean_prev)*dt*0.5;
       // salva su file ogni ttcf_mean_integral
       // salva su file ttcf_mean
-      fdata << t_vec[0] << " "<<ttcf_mean 
-                        << "  " << ttcf_mean_integral
-                        << "  " << ttcf_mean_integral - obs_mean_integral*omega_mean << std::endl;
+      fdata <<ttcf_mean << " " << ttcf_mean_integral
+                        << std::endl;
       ttcf_mean_prev = ttcf_mean;
       obs_mean_prev = obs_mean;
+      if (!eta_printed) {
+        // Calculate and print ETA after 10% progress (or adjust as needed)
+        if (h == step / 10000) {  // Change this condition to control when ETA is printed
+            double current_time = MPI_Wtime();
+            double elapsed_time = current_time - start_time;
+            double time_per_step = elapsed_time / h;
+            double remaining_time = time_per_step * (step - h);
+
+            std::cout << "Progress: " << (10000.0 * h / step) << "%, ETA: " 
+                      << std::fixed << std::setprecision(2) 
+                      << remaining_time << " seconds remaining" << std::endl;
+            
+            eta_printed = true;  // Set flag to ensure ETA is printed only once
+        }
     }
+    }
+
+    // Only the root process calculates and prints ETA once
+    
+
+
     // stop 
     MPI_Barrier (mpicomm);
   }
 
   if (rank == 0)
-    fdata.close ();
+    fdata.close();
 
   MPI_Finalize();
 	return 0;
