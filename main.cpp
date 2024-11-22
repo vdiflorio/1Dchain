@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 3000000;
+  long int step = 300;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
   int max_procs = 64; // # di processori su nodo a memoria condivisa
   size_t buffer_size = max_memory/(max_procs*10);
   buffer_size = buffer_size < step ? buffer_size : step;
-  std::cout << buffer_size << std::endl;
+  std::cout <<"\nBuffer size: " << buffer_size << std::endl;
   std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
   buffer.reserve (buffer_size);
   
@@ -161,7 +161,6 @@ int main(int argc, char **argv) {
       oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
         
       buffer.push_back(oss.str());
-
       // Quando il buffer è pieno, scrivi tutto sul file
       if (buffer.size() >= buffer_size) {
           // for (const auto& line : buffer) {
@@ -172,36 +171,41 @@ int main(int argc, char **argv) {
       }
       ttcf_mean_prev = ttcf_mean;
       //obs_mean_prev = obs_mean;
-      if (h % (step / 100) == 0) {
-            // Calcola la percentuale di avanzamento
-        double progress = (double)h / step * 100;
-        int bar_width = 70; // La larghezza della barra di progresso
-        int pos = bar_width * progress / 100;
+      // if (h % (step / 100) == 0) {
+      //       // Calcola la percentuale di avanzamento
+      //   double progress = (double)h / step * 100;
+      //   int bar_width = 70; // La larghezza della barra di progresso
+      //   int pos = bar_width * progress / 100;
 
-        // Calcola l'ETA (tempo rimanente)
-        double current_time = MPI_Wtime();
-        double elapsed_time = current_time - start_time;
-        double time_per_step = elapsed_time / h;  // Tempo medio per passo
-        double remaining_time = time_per_step * (step - h);  // Tempo rimanente
+      //   // Calcola l'ETA (tempo rimanente)
+      //   double current_time = MPI_Wtime();
+      //   double elapsed_time = current_time - start_time;
+      //   double time_per_step = elapsed_time / h;  // Tempo medio per passo
+      //   double remaining_time = time_per_step * (step - h);  // Tempo rimanente
 
-        // Stampa la barra di progresso con l'ETA
-        std::cout << "[";
-        for (int i = 0; i < bar_width; ++i) {
-            if (i < pos) std::cout << "=";
-            else std::cout << " ";
-        }
-        std::cout << "] " << std::fixed << std::setprecision(2) << progress << "% ETA: "
-                  << std::fixed << std::setprecision(2) << remaining_time << " seconds\r";
-        std::cout.flush();  // Assicurati che la barra venga aggiornata in tempo reale
-      }
+      //   // Stampa la barra di progresso con l'ETA
+      //   std::cout << "[";
+      //   for (int i = 0; i < bar_width; ++i) {
+      //       if (i < pos) std::cout << "=";
+      //       else std::cout << " ";
+      //   }
+      //   std::cout << "] " << std::fixed << std::setprecision(2) << progress << "% ETA: "
+      //             << std::fixed << std::setprecision(2) << remaining_time << " seconds\r";
+      //   std::cout.flush();  // Assicurati che la barra venga aggiornata in tempo reale
+      // }
     }
 
     // Only the root process calculates and prints ETA once
        
   }
 
-  if (rank == 0)
+  if (rank == 0){
+    if (buffer.size() > 0){
+      std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<std::string>(fdata, ""));
+      buffer.clear();  // Svuota il buffer dopo la scrittura
+    }
     fdata.close();
+  }
 
   MPI_Finalize();
 	return 0;
