@@ -10,7 +10,7 @@ void EulerStep (double t, std::vector<double>  &Y,
 // of the system of equations.
 {
   int n;
-  std::vector<double> rhs(neq);
+  static std::vector<double> rhs(neq);
   dYdt (t, Y, rhs);
   for (n = 0; n < neq; n++){
     Y[n] += dt*rhs[n];
@@ -29,7 +29,7 @@ void RK2Step (double t, std::vector<double>  &Y,
 // of the system of equations.
 {
   int n;
-  std::vector<double> y1(neq), k1(neq), k2(neq);
+  static std::vector<double> y1(neq), k1(neq), k2(neq);
   
   dYdt (t, Y, k1);
   for (n = 0; n < neq; n++){
@@ -54,8 +54,8 @@ void RK4Step (double t, std::vector<double>  &Y,
 // of the system of equations.
 {
   int n;
-  std::vector<double> y1(neq), y2(neq), y3(neq); 
-  std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq);
+  static std::vector<double> y1(neq), y2(neq), y3(neq); 
+  static std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq);
   
   dYdt (t, Y, k1);
   
@@ -92,8 +92,8 @@ void RK5Step (double t, std::vector<double>  &Y,
 // of the system of equations.
 {
   int n;
-  std::vector<double> y1(neq), y2(neq), y3(neq), y4(neq), y5(neq); 
-  std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq), k5(neq), k6(neq);
+  static std::vector<double> y1(neq), y2(neq), y3(neq), y4(neq), y5(neq); 
+  static std::vector<double> k1(neq), k2(neq), k3(neq), k4(neq), k5(neq), k6(neq);
 
   
   dYdt (t, Y, k1);

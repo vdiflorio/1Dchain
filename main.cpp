@@ -17,11 +17,12 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(mpicomm, &rank);
   MPI_Comm_size(mpicomm, &size);
 
+  double start_time = MPI_Wtime();  // Start timer for ETA calculation
 
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 300;
+  long int step = 3000000;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
@@ -132,7 +133,6 @@ int main(int argc, char **argv) {
   std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
   buffer.reserve (buffer_size);
   
-  double start_time = MPI_Wtime();  // Start timer for ETA calculation
   bool eta_printed = false;         // Flag to print ETA only once
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
@@ -206,6 +206,10 @@ int main(int argc, char **argv) {
     }
     fdata.close();
   }
+
+  double end_time = MPI_Wtime();  // end timer for ETA calculation
+  if (rank == 0)
+    std::cout <<"\nTotal simulation time: " << end_time - start_time << std::endl;
 
   MPI_Finalize();
 	return 0;
