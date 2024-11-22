@@ -19,11 +19,11 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 6000000;
+  long int step = 3000000;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 1000000;  // numero di catene
+  int num_condizioni = 10000;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
@@ -34,14 +34,14 @@ int main(int argc, char **argv) {
   // Solo il processo 0 legge il file binario
   std::ostringstream file_name;
   double dt = 5.e-5;
-  file_name << "ttcf" << "_" << dt << ".dat";
+  file_name << "ttcf" << ".dat";
 
   
   
   if (rank == 0) {
   	std::cout << "\nnumero di catene scelto: " << num_condizioni <<std::endl<<std::endl;
     read_conditions(X_tot, num_condizioni, neq);
-    fdata.open(file_name.str());
+    fdata.open(file_name.str(), std::ios::out | std::ios::trunc);
     fdata  << std::setiosflags(std::ios::scientific); 
     fdata << std::setprecision(4);
   }
@@ -139,12 +139,21 @@ int main(int argc, char **argv) {
   // Evolvere le condizioni iniziali
   double t = 0.0;
   std::vector<double> t_vec (X_local.size(),0);
+
+
+
+std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
+
+// Imposta la dimensione del buffer
+const size_t buffer_size = 10000;  // Scrivi ogni 1000 valori
+
   
   double start_time = MPI_Wtime();  // Start timer for ETA calculation
   bool eta_printed = false;         // Flag to print ETA only once
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
     //obs_mean = 0;
+    //#pragma omp parallel for reduction(+:ttcf_mean)
     for (int i = 0; i < X_local.size(); ++i) {
       RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
@@ -172,33 +181,68 @@ int main(int argc, char **argv) {
       // obs_mean_integral += (obs_mean + obs_mean_prev)*dt*0.5;
       // salva su file ogni ttcf_mean_integral
       // salva su file ttcf_mean
-      fdata <<ttcf_mean << " " << ttcf_mean_integral
-                        << std::endl;
+      // fdata <<ttcf_mean << " " << ttcf_mean_integral
+      //                   << std::endl;
+      std::ostringstream oss;
+      oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
+        
+        buffer.push_back(oss.str());
+
+        // Quando il buffer è pieno, scrivi tutto sul file
+        if (buffer.size() >= buffer_size) {
+            for (const auto& line : buffer) {
+                fdata << line;
+            }
+            buffer.clear();  // Svuota il buffer dopo la scrittura
+        }
       ttcf_mean_prev = ttcf_mean;
       //obs_mean_prev = obs_mean;
-      if (!eta_printed) {
-        // Calculate and print ETA after 10% progress (or adjust as needed)
-        if (h == step / 10000) {  // Change this condition to control when ETA is printed
-            double current_time = MPI_Wtime();
-            double elapsed_time = current_time - start_time;
-            double time_per_step = elapsed_time / h;
-            double remaining_time = time_per_step * (step - h);
+      if (h % (step / 100) == 0) {
+            // Calcola la percentuale di avanzamento
+        double progress = (double)h / step * 100;
+        int bar_width = 70; // La larghezza della barra di progresso
+        int pos = bar_width * progress / 100;
 
-            std::cout << "Progress: " << (10000.0 * h / step) << "%, ETA: " 
-                      << std::fixed << std::setprecision(2) 
-                      << remaining_time << " seconds remaining" << std::endl;
-            
-            eta_printed = true;  // Set flag to ensure ETA is printed only once
+        // Calcola l'ETA (tempo rimanente)
+        double current_time = MPI_Wtime();
+        double elapsed_time = current_time - start_time;
+        double time_per_step = elapsed_time / h;  // Tempo medio per passo
+        double remaining_time = time_per_step * (step - h);  // Tempo rimanente
+
+        // Stampa la barra di progresso con l'ETA
+        std::cout << "[";
+        for (int i = 0; i < bar_width; ++i) {
+            if (i < pos) std::cout << "=";
+            else std::cout << " ";
         }
+        std::cout << "] " << std::fixed << std::setprecision(2) << progress << "% ETA: "
+                  << std::fixed << std::setprecision(2) << remaining_time << " seconds\r";
+        std::cout.flush();  // Assicurati che la barra venga aggiornata in tempo reale
+
     }
+        
+    //   if (true) {
+    //     // Calculate and print ETA after 10% progress (or adjust as needed)
+    //     if (h%1000 == 0) {  // Change this condition to control when ETA is printed
+    //         double current_time = MPI_Wtime();
+    //         double elapsed_time = current_time - start_time;
+    //         double time_per_step = elapsed_time / h;
+    //         double remaining_time = time_per_step * (step - h);
+
+    //         std::cout << "Progress: " << (1000.0 * h / step) << "%, ETA: " 
+    //                   << std::fixed << std::setprecision(2) 
+    //                   << remaining_time << " seconds remaining" << std::endl;
+            
+    //         eta_printed = true;  // Set flag to ensure ETA is printed only once
+    //     }
+    // }
     }
 
     // Only the root process calculates and prints ETA once
     
 
 
-    // stop 
-    MPI_Barrier (mpicomm);
+    
   }
 
   if (rank == 0)
