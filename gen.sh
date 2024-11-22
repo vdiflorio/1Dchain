@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=4 
 
-#SBATCH --ntasks=128
+#SBATCH --ntasks=160
 #SBATCH --cpus-per-task=1 
 #SBATCH --partition=long_cpu 
 
@@ -24,4 +24,4 @@
 module use /opt/share/sw2/modules/all
 module load OpenMPI/4.1.6-GCC-13.2.0
 make clean all
-mpirun -np 128 fput
+mpirun -np 160 fput

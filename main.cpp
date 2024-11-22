@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 3000000;
+  long int step = 6000000;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
@@ -32,10 +32,16 @@ int main(int argc, char **argv) {
   }
   std::ofstream fdata;
   // Solo il processo 0 legge il file binario
+  std::ostringstream file_name;
+  double dt = 5.e-5;
+  file_name << "ttcf" << "_" << dt << ".dat";
+
+  
+  
   if (rank == 0) {
   	std::cout << "\nnumero di catene scelto: " << num_condizioni <<std::endl<<std::endl;
     read_conditions(X_tot, num_condizioni, neq);
-    fdata.open("ttcf.dat");
+    fdata.open(file_name.str());
     fdata  << std::setiosflags(std::ios::scientific); 
     fdata << std::setprecision(4);
   }
@@ -133,12 +139,12 @@ int main(int argc, char **argv) {
   // Evolvere le condizioni iniziali
   double t = 0.0;
   std::vector<double> t_vec (X_local.size(),0);
-  double dt = 1.e-4;
+  
   double start_time = MPI_Wtime();  // Start timer for ETA calculation
   bool eta_printed = false;         // Flag to print ETA only once
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
-    obs_mean = 0;
+    //obs_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
       RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
@@ -169,7 +175,7 @@ int main(int argc, char **argv) {
       fdata <<ttcf_mean << " " << ttcf_mean_integral
                         << std::endl;
       ttcf_mean_prev = ttcf_mean;
-      obs_mean_prev = obs_mean;
+      //obs_mean_prev = obs_mean;
       if (!eta_printed) {
         // Calculate and print ETA after 10% progress (or adjust as needed)
         if (h == step / 10000) {  // Change this condition to control when ETA is printed
