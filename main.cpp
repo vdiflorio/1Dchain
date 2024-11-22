@@ -5,6 +5,8 @@
 #include <random>
 #include <mpi.h>
 #include <fstream>
+#include <sstream>
+
 
 int main(int argc, char **argv) {
 	
@@ -23,7 +25,7 @@ int main(int argc, char **argv) {
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 10000;  // numero di catene
+  int num_condizioni = 100;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
@@ -33,7 +35,7 @@ int main(int argc, char **argv) {
   std::ofstream fdata;
   // Solo il processo 0 legge il file binario
   std::ostringstream file_name;
-  double dt = 5.e-5;
+  double dt = 1.e-3;
   file_name << "ttcf" << ".dat";
 
   
@@ -85,14 +87,6 @@ int main(int argc, char **argv) {
   //pulizia del vettore X_local_flat
   std::vector<double>().swap(X_local_flat);
 
-  // // Debug: stampa dei dati ricevuti per ciascun rank
-  // for (const auto& cond : X_local) {
-  //   std::cout << "Rank " << rank << " :  ";
-  //   for (double val : cond) {
-  //     std::cout << std::setprecision(3)<< val << " ";
-  //   }
-  //   std::cout << "\n";
-  // }
 
   std::vector<double> omega_vec (X_local.size());
   double ttcf_mean = 0;
@@ -112,22 +106,10 @@ int main(int argc, char **argv) {
     omega_mean += omega_vec[i];
   }
 
-  MPI_Barrier (mpicomm);
-  if (rank == 0) {
-    MPI_Reduce (MPI_IN_PLACE, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
-    // MPI_Reduce (MPI_IN_PLACE, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-    //             mpicomm);
-    MPI_Reduce (MPI_IN_PLACE, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
-  } else {
-    MPI_Reduce (&ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
-    // MPI_Reduce (&obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0,
-    //             mpicomm);
-    MPI_Reduce (&omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                mpicomm);
-  }
+
+  MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
+  MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
+
   if (rank == 0){
     ttcf_mean_prev = ttcf_mean_prev/num_condizioni;
     obs_mean_prev = obs_mean_prev/num_condizioni;
@@ -141,19 +123,20 @@ int main(int argc, char **argv) {
   std::vector<double> t_vec (X_local.size(),0);
 
 
-
-std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
-
-// Imposta la dimensione del buffer
-const size_t buffer_size = 10000;  // Scrivi ogni 1000 valori
-
+  // Imposta la dimensione del buffer
+  double max_memory = 1.e8;  // 100 MB per vector buff
+  int max_procs = 64; // # di processori su nodo a memoria condivisa
+  size_t buffer_size = max_memory/(max_procs*10);
+  buffer_size = buffer_size < step ? buffer_size : step;
+  std::cout << buffer_size << std::endl;
+  std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
+  buffer.reserve (buffer_size);
   
   double start_time = MPI_Wtime();  // Start timer for ETA calculation
   bool eta_printed = false;         // Flag to print ETA only once
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
     //obs_mean = 0;
-    //#pragma omp parallel for reduction(+:ttcf_mean)
     for (int i = 0; i < X_local.size(); ++i) {
       RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
@@ -161,22 +144,13 @@ const size_t buffer_size = 10000;  // Scrivi ogni 1000 valori
       ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
       // obs_mean += observable(X_local[i]);
     }
-    if (rank == 0) {
-      MPI_Reduce (MPI_IN_PLACE, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                  mpicomm);
-      // MPI_Reduce (MPI_IN_PLACE, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-      //             mpicomm);
 
-    } else {
-      MPI_Reduce (&ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-                  mpicomm);
-      // MPI_Reduce (&obs_mean, &obs_mean, 1, MPI_DOUBLE, MPI_SUM, 0,
-      //             mpicomm);
-    }
+    MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
+
     if (rank == 0){
       ttcf_mean = ttcf_mean/num_condizioni;
       // obs_mean = obs_mean/num_condizioni;
-      // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
+      // // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
       ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
       // obs_mean_integral += (obs_mean + obs_mean_prev)*dt*0.5;
       // salva su file ogni ttcf_mean_integral
@@ -186,15 +160,16 @@ const size_t buffer_size = 10000;  // Scrivi ogni 1000 valori
       std::ostringstream oss;
       oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
         
-        buffer.push_back(oss.str());
+      buffer.push_back(oss.str());
 
-        // Quando il buffer è pieno, scrivi tutto sul file
-        if (buffer.size() >= buffer_size) {
-            for (const auto& line : buffer) {
-                fdata << line;
-            }
-            buffer.clear();  // Svuota il buffer dopo la scrittura
-        }
+      // Quando il buffer è pieno, scrivi tutto sul file
+      if (buffer.size() >= buffer_size) {
+          // for (const auto& line : buffer) {
+          //     fdata << line;
+          // }
+          std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<std::string>(fdata, ""));
+          buffer.clear();  // Svuota il buffer dopo la scrittura
+      }
       ttcf_mean_prev = ttcf_mean;
       //obs_mean_prev = obs_mean;
       if (h % (step / 100) == 0) {
@@ -218,31 +193,11 @@ const size_t buffer_size = 10000;  // Scrivi ogni 1000 valori
         std::cout << "] " << std::fixed << std::setprecision(2) << progress << "% ETA: "
                   << std::fixed << std::setprecision(2) << remaining_time << " seconds\r";
         std::cout.flush();  // Assicurati che la barra venga aggiornata in tempo reale
-
-    }
-        
-    //   if (true) {
-    //     // Calculate and print ETA after 10% progress (or adjust as needed)
-    //     if (h%1000 == 0) {  // Change this condition to control when ETA is printed
-    //         double current_time = MPI_Wtime();
-    //         double elapsed_time = current_time - start_time;
-    //         double time_per_step = elapsed_time / h;
-    //         double remaining_time = time_per_step * (step - h);
-
-    //         std::cout << "Progress: " << (1000.0 * h / step) << "%, ETA: " 
-    //                   << std::fixed << std::setprecision(2) 
-    //                   << remaining_time << " seconds remaining" << std::endl;
-            
-    //         eta_printed = true;  // Set flag to ensure ETA is printed only once
-    //     }
-    // }
+      }
     }
 
     // Only the root process calculates and prints ETA once
-    
-
-
-    
+       
   }
 
   if (rank == 0)
