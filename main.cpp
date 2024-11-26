@@ -6,27 +6,55 @@
 #include <mpi.h>
 #include <fstream>
 #include <sstream>
+#include <iterator>
+
+int N = 30;        // Default number of particles
+double Tl = 1.0;   // Default left thermostat temperature
+double Tr = 2.0;   // Default right thermostat temperature
 
 
-int main(int argc, char **argv) {
-	
-	MPI_Init(&argc, &argv);
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
 
-  int rank, size;
-  MPI_Comm mpicomm = MPI_COMM_WORLD;
-  MPI_Comm_rank(mpicomm, &rank);
-  MPI_Comm_size(mpicomm, &size);
+    int rank, size;
+    MPI_Comm mpicomm = MPI_COMM_WORLD;
+    MPI_Comm_rank(mpicomm, &rank);
+    MPI_Comm_size(mpicomm, &size);
 
-  double start_time = MPI_Wtime();  // Start timer for ETA calculation
+    double start_time = MPI_Wtime();  // Start timer for ETA calculation
+
+    // Master process (rank 0) handles parameter parsing
+    if (rank == 0) {
+        if (argc == 4) {
+            N = std::atoi(argv[1]);   // Convert first argument to int
+            Tl = std::atof(argv[2]); // Convert second argument to double
+            Tr = std::atof(argv[3]); // Convert third argument to double
+        } else if (argc > 1) {
+            std::cerr << "Usage: mpirun -np <num_processes> ./program N Tl Tr\n";
+            MPI_Abort(mpicomm, 1);
+        }
+
+        std::cout << "Master process received parameters:\n";
+        std::cout << "N = " << N << ", Tl = " << Tl << ", Tr = " << Tr << "\n";
+    }
+
+    // Broadcast parameters to all processes
+    MPI_Bcast(&N, 1, MPI_INT, 0, mpicomm);
+    MPI_Bcast(&Tl, 1, MPI_DOUBLE, 0, mpicomm);
+    MPI_Bcast(&Tr, 1, MPI_DOUBLE, 0, mpicomm);
+
+    // All processes now have the same values for N, Tl, and Tr
+    // std::cout << "Process " << rank << " running simulation...\n";
+    //runSimulation();
 
 
-  int      neq = (N+2)*2*dim + 2;
+  int  neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 3000000;
+  long int step = 5;
   long int h;
   std::vector<double> X_tot;
   int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 100;  // numero di catene
+  int num_condizioni = 10;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && false){
@@ -36,8 +64,9 @@ int main(int argc, char **argv) {
   std::ofstream fdata;
   // Solo il processo 0 legge il file binario
   std::ostringstream file_name;
-  double dt = 1.e-3;
-  file_name << "ttcf" << ".dat";
+  double dt = 5.e-4;
+  // Creazione del nome del file con N e Tr
+file_name << "save_data/ttcf_test_N_" << N << "_Tr_" << Tr << ".dat";
 
   
   
@@ -97,12 +126,12 @@ int main(int argc, char **argv) {
   double obs_mean = 0;
   double obs_mean_prev = 0;
   double obs_mean_integral = 0;
-
+  double T_init=1.0;
   double omega_mean = 0;
 
   for (int i = 0; i < X_local.size(); ++i) {
-    omega_vec[i] = omega_0(X_local[i], Tl); 
-    ttcf_mean_prev += TTCF(observable, omega_vec[i],X_local[i], Tl);
+    omega_vec[i] = omega_0(X_local[i], T_init); 
+    ttcf_mean_prev += TTCF(observable, omega_vec[i],X_local[i], T_init);
     // obs_mean_prev += observable (X_local[i]);
     omega_mean += omega_vec[i];
   }
@@ -128,8 +157,9 @@ int main(int argc, char **argv) {
   double max_memory = 1.e8;  // 100 MB per vector buff
   int max_procs = 64; // # di processori su nodo a memoria condivisa
   size_t buffer_size = max_memory/(max_procs*10);
-  buffer_size = buffer_size < step ? buffer_size : step;
-  std::cout <<"\nBuffer size: " << buffer_size << std::endl;
+  if (rank==0){
+    buffer_size = buffer_size < step ? buffer_size : step;
+    std::cout <<"\nBuffer size: " << buffer_size << std::endl;}
   std::vector<std::string> buffer;  // Buffer in RAM per accumulare i dati
   buffer.reserve (buffer_size);
   
@@ -141,7 +171,7 @@ int main(int argc, char **argv) {
       RK4Step(t_vec[i], X_local[i], Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBeta, dt,neq);   // integration of the function
       t_vec[i] += dt;
-      ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], Tl);
+      ttcf_mean += TTCF(observable, omega_vec[i],X_local[i], T_init);
       // obs_mean += observable(X_local[i]);
     }
 
