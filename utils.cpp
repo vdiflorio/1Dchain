@@ -17,6 +17,9 @@ double omega_0(std::vector<double> &Y, double T){
     double  omega=0.0;
     
     for(j =0; j<dim; j++){
+
+        
+
         omega+=Y[k*(N+2)+1]*Y[k*N+dim+j]*Y[k*N+dim+j]*(1.0/Tr-1.0/T)/m +
                Y[k*(N+2)]*Y[k+dim+j]*Y[k+dim+j]*(1.0/Tl-1.0/T)/m;
     } 
