@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <fstream>
 #include <sstream>
+#include <cstring> // Per strcmp
 #include <iterator>
 
 int N = 30;        // Default number of particles
@@ -23,41 +24,51 @@ int main(int argc, char** argv) {
 
     double start_time = MPI_Wtime();  // Start timer for ETA calculation
 
+    // Variabile aggiuntiva
+    bool save_conditions = false;
+
     // Master process (rank 0) handles parameter parsing
     if (rank == 0) {
-        if (argc == 4) {
-            N = std::atoi(argv[1]);   // Convert first argument to int
-            Tl = std::atof(argv[2]); // Convert second argument to double
-            Tr = std::atof(argv[3]); // Convert third argument to double
+        if (argc == 5) {  // Aggiunto un parametro in più
+            N = std::atoi(argv[1]);        // Convert first argument to int
+            Tl = std::atof(argv[2]);      // Convert second argument to double
+            Tr = std::atof(argv[3]);      // Convert third argument to double
+
+            // Interpretare "y" come true e "n" come false
+            if (std::strcmp(argv[4], "y") == 0 || std::strcmp(argv[4], "yes") == 0) {
+                save_conditions = true;
+            } else if (std::strcmp(argv[4], "n") == 0 || std::strcmp(argv[4], "no") == 0) {
+                save_conditions = false;
+            } else {
+                std::cerr << "Errore: il quarto argomento deve essere 'y' (yes) o 'n' (no).\n";
+                MPI_Abort(mpicomm, 1);
+            }
         } else if (argc > 1) {
-            std::cerr << "Usage: mpirun -np <num_processes> ./program N Tl Tr\n";
+            std::cerr << "Usage: mpirun -np <num_processes> ./program N Tl Tr <y|n>\n";
             MPI_Abort(mpicomm, 1);
         }
 
         std::cout << "Master process received parameters:\n";
-        std::cout << "N = " << N << ", Tl = " << Tl << ", Tr = " << Tr << "\n";
+        std::cout << "N = " << N << ", Tl = " << Tl << ", Tr = " << Tr
+                  << ", save_conditions = " << (save_conditions ? "true" : "false") << "\n";
     }
 
     // Broadcast parameters to all processes
     MPI_Bcast(&N, 1, MPI_INT, 0, mpicomm);
     MPI_Bcast(&Tl, 1, MPI_DOUBLE, 0, mpicomm);
     MPI_Bcast(&Tr, 1, MPI_DOUBLE, 0, mpicomm);
-
-    // All processes now have the same values for N, Tl, and Tr
-    // std::cout << "Process " << rank << " running simulation...\n";
-    //runSimulation();
-
+    MPI_Bcast(&save_conditions, 1, MPI_CXX_BOOL, 0, mpicomm); // Aggiunto il broadcast per save_conditions
 
   int  neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
   long int step = 5;
   long int h;
   std::vector<double> X_tot;
-  int num_catene = 1;  // numero di catene per generare CI
-  int num_condizioni = 10;  // numero di catene
+  int num_catene = 100;  // numero di catene per generare CI
+  int num_condizioni = 1;  // numero di catene
 
   // genera le condizioni iniziali
-  if (rank == 0 && false){
+  if (rank == 0 && save_conditions){
     std::cout << "\nSalvatggio condizioni iniziali su " << num_catene << " catene";
   	save_condizioni_iniziali(num_catene);
   }
@@ -66,7 +77,7 @@ int main(int argc, char** argv) {
   std::ostringstream file_name;
   double dt = 5.e-4;
   // Creazione del nome del file con N e Tr
-file_name << "save_data/ttcf_test_N_" << N << "_Tr_" << Tr << ".dat";
+file_name << "single_data/ttcf_menopart_N_" << N << "_Tr_" << Tr << ".dat";
 
   
   

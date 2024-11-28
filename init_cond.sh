@@ -15,10 +15,6 @@ module load OpenMPI/4.1.6-GCC-13.2.0
 
 make clean all
 
-# Loop over argument combinations
-# for N in 30 50 70; do         # Adjust these values as needed
-for Tr in $(seq 1.001 0.002 1.1); do # Loop from 1.001 to 1.1 with step 0.002
-    echo "Running with N=30, Tl=1, Tr=$Tr"
-    mpirun -np 160 ./fput 30 1 $Tr
-done
-# done
+
+
+mpirun -np 1 ./fput 80 1 1 y

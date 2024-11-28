@@ -47,7 +47,13 @@ double observable(std::vector<double> &Y){
 
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {
     // Apri il file binario
-    int fd = open("condizioni.bin", O_RDONLY);
+    // Creazione del nome del file dinamico
+    std::ostringstream name;
+    name << "condizioni_" << N << ".bin";
+    std::string filename = name.str();
+
+    // Apertura del file con il nome dinamico
+    int fd = open(filename.c_str(), O_RDONLY);
     if (fd == -1) {
         std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
         return;
@@ -146,9 +152,9 @@ int save_condizioni_iniziali(int num_catene)
 {
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 80000000;
+  long int step = 50000000;
   long int h;
-  long int no_step  = 10000000;
+  long int no_step  = 8000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
@@ -214,7 +220,7 @@ int save_condizioni_iniziali(int num_catene)
       RK4Step(t, X, Chain1, dt,neq);   // integration of the function
       // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
       t += dt; 
-      if (drand48()<0.01){
+      if (drand48()<0.005){
         condizioni.push_back(X);
         pd++;
       }
@@ -224,8 +230,11 @@ int save_condizioni_iniziali(int num_catene)
 
   int dimension_condizioni;
   dimension_condizioni = condizioni.size();
-
-  std::ofstream outFile("condizioni.bin", std::ios::binary);
+  std::ostringstream name;
+  name << "condizioni_" << N << ".bin";
+  
+  // Apertura del file con il nome dinamico
+  std::ofstream outFile(name.str(), std::ios::binary);
   if (!outFile) {
     std::cerr << "Errore nell'apertura del file per scrittura!" << std::endl;
     return 1;
