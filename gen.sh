@@ -8,17 +8,19 @@
 #SBATCH --cpus-per-task=1 
 #SBATCH --partition=long_cpu 
 #SBATCH --mem=128G
-#SBATCH --time=16:00:00  
+#SBATCH --time=23:00:00  
 
 module use /opt/share/sw2/modules/all
 module load OpenMPI/4.1.6-GCC-13.2.0
 
 make clean all
 
-# Loop over argument combinations
-# for N in 30 50 70; do         # Adjust these values as needed
-for Tr in $(seq 1.001 0.002 1.1); do # Loop from 1.001 to 1.1 with step 0.002
-    echo "Running with N=30, Tl=1, Tr=$Tr"
-    mpirun -np 160 ./fput 30 1 $Tr
+for N in $(seq 40 10 200); do 
+    for Tr in $(seq 1.001 0.002 1.1); do
+        echo "Running with N=$N, Tl=1, Tr=$Tr"
+        mpirun -np 160 ./fput $N 1 $Tr n
+    done
+
+    # Compress all files for the current N after completing the inner loop
+    tar --remove-files -czvf single_data/compressed_mil_N_${N}.tar.gz single_data/ttcf_mil_N_${N}_Tr_*.dat
 done
-# done

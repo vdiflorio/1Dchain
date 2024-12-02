@@ -89,12 +89,20 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
     // Prepara il vettore per le condizioni
     condizioni.reserve(num_condizioni * neq);
 
-    // Genera gli indici casuali
-    std::vector<int64_t> indices(num_condizioni / 2);
+    int64_t num_selezioni = num_condizioni / 2; // Numero di indici da selezionare
+
+    // Genera un vettore con tutti gli indici
+    std::vector<int64_t> all_indices(num_condizioni);
+    std::iota(all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
+
+    // Mescola il vettore
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<int64_t> dist(0, num_condizioni - 1);
-    std::generate(indices.begin(), indices.end(), [&]() { return dist(gen); });
+    std::shuffle(all_indices.begin(), all_indices.end(), gen);
+
+    // Seleziona i primi num_selezioni indici
+    std::vector<int64_t> indices(all_indices.begin(), all_indices.begin() + num_selezioni);
+
 
     // Timer per calcolare la velocità
     auto start_time = std::chrono::high_resolution_clock::now();

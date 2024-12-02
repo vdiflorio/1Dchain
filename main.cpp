@@ -61,11 +61,11 @@ int main(int argc, char** argv) {
 
   int  neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 5;
+  long int step = 60000;
   long int h;
   std::vector<double> X_tot;
-  int num_catene = 100;  // numero di catene per generare CI
-  int num_condizioni = 1;  // numero di catene
+  int num_catene = 1;  // numero di catene per generare CI
+  int num_condizioni = 1000000;  // numero di catene
 
   // genera le condizioni iniziali
   if (rank == 0 && save_conditions){
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   std::ostringstream file_name;
   double dt = 5.e-4;
   // Creazione del nome del file con N e Tr
-file_name << "single_data/ttcf_menopart_N_" << N << "_Tr_" << Tr << ".dat";
+file_name << "single_data/ttcf_mil_N_" << N << "_Tr_" << Tr << ".dat";
 
   
   
