@@ -16,6 +16,6 @@ for N in $(seq 30 10 30); do
         mpirun -np 4 ./fput  $JSON_FILE
     done
     # Compress all files for the current N after completing the inner loop
-    tar -czvf single_data/compressed_mil_N_${N}.tar.gz single_data/ttcf_mil_N_${N}_Tr_*.dat
+    tar -czvf single_data/compressed_archive_N_${N}.tar.gz single_data/ttcf_mil_N_${N}_Tr_*.dat
     rm single_data/ttcf_mil_N_${N}_Tr_*.dat
 done
