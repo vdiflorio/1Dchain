@@ -23,6 +23,6 @@
         "tddata": "temp_dens.dat"
     },
     "bparams": {
-        "save_conditions": true
+        "save_conditions": false
     }
 }

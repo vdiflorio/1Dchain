@@ -22,8 +22,7 @@ params_t p{
     {"Tl", 1.0},
     {"Tr", 5.0},
     {"thetaL", 1.0},
-    {"thetaR", 1.0},
-    {"Kb", 1.0}
+    {"thetaR", 1.0}
   },
   {
     {"ddata", "densita.dat"},
