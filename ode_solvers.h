@@ -1,3 +1,6 @@
+#ifndef ODE_SOLVERS_H
+#define ODE_SOLVERS_H
+
 #include <iostream>
 #include <cmath>
 #include <iomanip>
@@ -24,3 +27,4 @@ void RK5Step   (double t, std::vector<double>  &Y,
 void PositionVerletStep (double *x, double *v, void (*acc)(double *,double *),
                          double dt, int neq);
 
+#endif

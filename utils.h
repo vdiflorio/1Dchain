@@ -1,3 +1,5 @@
+#ifndef UTILS_H
+#define UTILS_H
 #include <iostream>
 #include <cmath>
 
@@ -14,3 +16,4 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
 
 int save_condizioni_iniziali(int num_catene);
 
+#endif

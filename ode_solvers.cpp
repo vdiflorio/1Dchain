@@ -1,4 +1,5 @@
 #include "ode_solvers.h"
+#include "param.h"
 
 
 void EulerStep (double t, std::vector<double>  &Y, 

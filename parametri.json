@@ -1,0 +1,28 @@
+{
+    "dparams": {
+        "dt": 5e-4,
+        "Tl": 1.0,
+        "Tr": 5.0,
+        "a": 1.0,
+        "alpha": 0.0,
+        "beta": 0.5,
+        "chi": 1.0,
+        "m": 1.0,
+        "thetaL": 1.0,
+        "thetaR": 1.0
+    },
+    "iparams": {
+        "N": 10,
+        "dim": 1,
+	    "step": 50000,
+        "catene_CI": 1,
+        "catene_scelte": 10
+    },
+    "sparams": {
+        "ddata": "densita.dat",
+        "tddata": "temp_dens.dat"
+    },
+    "bparams": {
+        "save_conditions": true
+    }
+}

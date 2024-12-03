@@ -1,6 +1,7 @@
 // File for auxiliary functions (ex. Omega)
 #include "ode_func.h"
 #include "ode_solvers.h"
+#include "param.h"
 
 #include "utils.h"
 #include <cstdint>
@@ -13,7 +14,14 @@
 
 double omega_0(std::vector<double> &Y, double T){
   // Function to compute the dissipation function wrt the initial density
-  int     j,k;   
+  
+  double Tl = p.dparams["Tl"];
+  double Tr = p.dparams["Tr"];
+  double m = p.dparams["m"];
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+
+  int j,k;   
   k = 2*dim;
   double  omega=0.0;
   
@@ -33,8 +41,20 @@ double TTCF(std::function<double(std::vector<double>&)> obs, double omega ,std::
 }
 
 double observable_tot(std::vector<double> &Y){
-    // Function to compute any observable, that is function of the phase space state
-  int k = 2*dim;
+  // Function to compute any observable, that is function of the phase space state
+  double Tl = p.dparams["Tl"];
+  double Tr = p.dparams["Tr"];
+  double m = p.dparams["m"];
+  double a = p.dparams["a"];
+  double thetaL = p.dparams["thetaL"];
+  double thetaR = p.dparams["thetaR"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+
+  int  k = 2*dim;
   int     i,j,n;
   double  r1 =0.0, r2 =0.0;
   // static std::vector <double> F;
@@ -63,22 +83,14 @@ double observable_tot(std::vector<double> &Y){
   // eq. for momentum
   flux = (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
              Alpha*(r1*r1 - r2*r2) + 
-             bet*(r1*r1*r1 - r2*r2*r2) - Psi1*F_l)*Y[n+dim]/m;
-   
-    
-  
-  ////////////////////////////////////
-  
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi1*F_l)*Y[n+dim]/m;  
   
   // le altre N-2 masse
   
   for(i = 2; i < N; i++){
     n = k*i;
-       
     r2 =r1;    
     r1 = (Y[n+k] - Y[n] - a);
-
-   
     // eq. for momentum
     flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
              Alpha*(r1*r1 - r2*r2) + 
@@ -103,15 +115,20 @@ double observable_tot(std::vector<double> &Y){
 
 double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
-    int k = 2*dim;
-
-    return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  
+  int k = 2*dim;
+  return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
 }
 
 
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {
     // Apri il file binario
     // Creazione del nome del file dinamico
+    int dim = p.iparams["dim"];
+    int N = p.iparams["N"];
+
     std::ostringstream name;
     name << "condizioni_" << N << ".bin";
     std::string filename = name.str();
@@ -174,26 +191,26 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
 
     // Lettura dei dati
     for (int i = 0; i < num_condizioni / 2; ++i) {
-        // Calcolare l'offset per l'indice casuale
-        std::streampos offset = indices[i] * dimensione_condizione;
+      // Calcolare l'offset per l'indice casuale
+      std::streampos offset = indices[i] * dimensione_condizione;
 
-        // Leggere direttamente dalla memoria mappata
-        double* condizione_ptr = reinterpret_cast<double*>(static_cast<char*>(file_memory) + offset);
-        std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
+      // Leggere direttamente dalla memoria mappata
+      double* condizione_ptr = reinterpret_cast<double*>(static_cast<char*>(file_memory) + offset);
+      std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
 
-        read_count++;
+      read_count++;
 
-        // Ogni 1000 letture, calcola e stampa la velocità
-        if (read_count == 100000) {
-            auto current_time = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> elapsed_time = current_time - start_time;
-            double speed = 100000.0 / elapsed_time.count(); // letture al secondo
-            std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
+      // Ogni 1000 letture, calcola e stampa la velocità
+      if (read_count == 100000) {
+        auto current_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_time = current_time - start_time;
+        double speed = 100000.0 / elapsed_time.count(); // letture al secondo
+        std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
 
-            // Reset del timer per il prossimo intervallo di 1000 letture
-            start_time = current_time;
-            
-        }
+        // Reset del timer per il prossimo intervallo di 1000 letture
+        start_time = current_time;
+          
+      }
     }
 
     // Modifica delle condizioni per il secondo ciclo
@@ -222,11 +239,15 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
 
 int save_condizioni_iniziali(int num_catene)
 {
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  double a = p.dparams["a"];
+
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 50000000;
+  long int step = 5000000;
   long int h;
-  long int no_step  = 8000000;
+  long int no_step  = 800000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
@@ -275,22 +296,13 @@ int save_condizioni_iniziali(int num_catene)
 
     //EVOLUZIONE SISTEMA
     for(h=1; h<=step - no_step; h++){
-      // if(h%(int(step)/100) == 0){
-      //   std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
-      //   progress++;
-      // }
-      RK4Step(t, X, Chain1, dt,neq);   // integration of the function
-      // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
+      RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      // RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
       t += dt; 
     }
-    for(h=step - no_step; h<=step; h++){  
-      
-      // if(h%(int(step)/100) == 0){
-      //   std::cout << progress << "% executed" << std::endl; // Show the progress of simulation 
-      //   progress++;
-      // }  
-      RK4Step(t, X, Chain1, dt,neq);   // integration of the function
-      // RK4Step(t, X, AlfaBeta_corrected, dt,neq);   // integration of the function
+    for(h=step - no_step; h<=step; h++){   
+      RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      // RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
       t += dt; 
       if (drand48()<0.005){
         condizioni.push_back(X);
