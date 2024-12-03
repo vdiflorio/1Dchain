@@ -2,7 +2,7 @@
     "dparams": {
         "dt": 0.0005,
         "Tl": 1.0,
-        "Tr": 1.0,
+        "Tr": 1.3,
         "a": 1.0,
         "alpha": 0.0,
         "beta": 0.5,
@@ -12,15 +12,14 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 100,
+        "N": 30,
         "dim": 1,
         "step": 50000,
         "catene_CI": 1,
-        "catene_scelte": 10
+        "catene_scelte": 100
     },
     "sparams": {
-        "ddata": "densita.dat",
-        "tddata": "temp_dens.dat"
+        "dir": "single_data"
     },
     "bparams": {
         "save_conditions": false

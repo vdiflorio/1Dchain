@@ -53,15 +53,19 @@ int main(int argc, char** argv) {
   // Solo il processo 0 legge il file binario
   std::ostringstream file_name;
   // Creazione del nome del file con N e Tr
-  file_name << "single_data/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
+  file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
 
   
   if (rank == 0) {
   	std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
     read_conditions(X_tot, catene_scelte, neq);
+    system("mkdir -p single_data");
     fdata.open(file_name.str(), std::ios::out | std::ios::trunc);
     fdata  << std::setiosflags(std::ios::scientific); 
     fdata << std::setprecision(4);
+    if (!fdata.is_open()) {
+        std::cerr << "Error: Could not open file " << file_name.str() << std::endl;
+    }
   }
   MPI_Barrier (mpicomm);
   // Determinare quante condizioni iniziali deve gestire ogni processo

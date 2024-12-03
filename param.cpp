@@ -25,8 +25,7 @@ params_t p{
     {"thetaR", 1.0}
   },
   {
-    {"ddata", "densita.dat"},
-    {"tddata", "temp_dens.dat"}
+    {"dir", "single_data"}
   },
   {
     {"save_conditions", false}
