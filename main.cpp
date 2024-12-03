@@ -15,49 +15,49 @@ double Tr = 2.0;   // Default right thermostat temperature
 
 
 int main(int argc, char** argv) {
-    MPI_Init(&argc, &argv);
+  MPI_Init(&argc, &argv);
 
-    int rank, size;
-    MPI_Comm mpicomm = MPI_COMM_WORLD;
-    MPI_Comm_rank(mpicomm, &rank);
-    MPI_Comm_size(mpicomm, &size);
+  int rank, size;
+  MPI_Comm mpicomm = MPI_COMM_WORLD;
+  MPI_Comm_rank(mpicomm, &rank);
+  MPI_Comm_size(mpicomm, &size);
 
-    double start_time = MPI_Wtime();  // Start timer for ETA calculation
+  double start_time = MPI_Wtime();  // Start timer for ETA calculation
 
-    // Variabile aggiuntiva
-    bool save_conditions = false;
+  // Variabile aggiuntiva
+  bool save_conditions = false;
 
-    // Master process (rank 0) handles parameter parsing
-    if (rank == 0) {
-        if (argc == 5) {  // Aggiunto un parametro in più
-            N = std::atoi(argv[1]);        // Convert first argument to int
-            Tl = std::atof(argv[2]);      // Convert second argument to double
-            Tr = std::atof(argv[3]);      // Convert third argument to double
+  // Master process (rank 0) handles parameter parsing
+  if (rank == 0) {
+    if (argc == 5) {  // Aggiunto un parametro in più
+      N = std::atoi(argv[1]);        // Convert first argument to int
+      Tl = std::atof(argv[2]);      // Convert second argument to double
+      Tr = std::atof(argv[3]);      // Convert third argument to double
 
-            // Interpretare "y" come true e "n" come false
-            if (std::strcmp(argv[4], "y") == 0 || std::strcmp(argv[4], "yes") == 0) {
-                save_conditions = true;
-            } else if (std::strcmp(argv[4], "n") == 0 || std::strcmp(argv[4], "no") == 0) {
-                save_conditions = false;
-            } else {
-                std::cerr << "Errore: il quarto argomento deve essere 'y' (yes) o 'n' (no).\n";
-                MPI_Abort(mpicomm, 1);
-            }
-        } else if (argc > 1) {
-            std::cerr << "Usage: mpirun -np <num_processes> ./program N Tl Tr <y|n>\n";
-            MPI_Abort(mpicomm, 1);
-        }
-
-        std::cout << "Master process received parameters:\n";
-        std::cout << "N = " << N << ", Tl = " << Tl << ", Tr = " << Tr
-                  << ", save_conditions = " << (save_conditions ? "true" : "false") << "\n";
+      // Interpretare "y" come true e "n" come false
+      if (std::strcmp(argv[4], "y") == 0 || std::strcmp(argv[4], "yes") == 0) {
+          save_conditions = true;
+      } else if (std::strcmp(argv[4], "n") == 0 || std::strcmp(argv[4], "no") == 0) {
+          save_conditions = false;
+      } else {
+          std::cerr << "Errore: il quarto argomento deve essere 'y' (yes) o 'n' (no).\n";
+          MPI_Abort(mpicomm, 1);
+      }
+    } else if (argc > 1) {
+      std::cerr << "Usage: mpirun -np <num_processes> ./program N Tl Tr <y|n>\n";
+      MPI_Abort(mpicomm, 1);
     }
 
-    // Broadcast parameters to all processes
-    MPI_Bcast(&N, 1, MPI_INT, 0, mpicomm);
-    MPI_Bcast(&Tl, 1, MPI_DOUBLE, 0, mpicomm);
-    MPI_Bcast(&Tr, 1, MPI_DOUBLE, 0, mpicomm);
-    MPI_Bcast(&save_conditions, 1, MPI_CXX_BOOL, 0, mpicomm); // Aggiunto il broadcast per save_conditions
+    std::cout << "Master process received parameters:\n";
+    std::cout << "N = " << N << ", Tl = " << Tl << ", Tr = " << Tr
+              << ", save_conditions = " << (save_conditions ? "true" : "false") << "\n";
+  }
+
+  // Broadcast parameters to all processes
+  MPI_Bcast(&N, 1, MPI_INT, 0, mpicomm);
+  MPI_Bcast(&Tl, 1, MPI_DOUBLE, 0, mpicomm);
+  MPI_Bcast(&Tr, 1, MPI_DOUBLE, 0, mpicomm);
+  MPI_Bcast(&save_conditions, 1, MPI_CXX_BOOL, 0, mpicomm); // Aggiunto il broadcast per save_conditions
 
   int  neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   std::ostringstream file_name;
   double dt = 5.e-4;
   // Creazione del nome del file con N e Tr
-file_name << "single_data/ttcf_mil_N_" << N << "_Tr_" << Tr << ".dat";
+  file_name << "single_data/ttcf_mil_N_" << N << "_Tr_" << Tr << ".dat";
 
   
   
