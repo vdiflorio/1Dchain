@@ -245,9 +245,9 @@ int save_condizioni_iniziali(int num_catene)
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 5000000;
+  long int step = 50000000;
   long int h;
-  long int no_step  = 800000;
+  long int no_step  = 8000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;

@@ -1,8 +1,8 @@
 {
     "dparams": {
-        "dt": 5e-4,
+        "dt": 0.0005,
         "Tl": 1.0,
-        "Tr": 5.0,
+        "Tr": 10001.0,
         "a": 1.0,
         "alpha": 0.0,
         "beta": 0.5,
@@ -12,9 +12,9 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 10,
+        "N": 100,
         "dim": 1,
-	    "step": 50000,
+        "step": 50000,
         "catene_CI": 1,
         "catene_scelte": 10
     },
