@@ -113,6 +113,43 @@ double observable_tot(std::vector<double> &Y){
   return flux/N;
 }
 
+double observable_bulk(std::vector<double> &Y){
+  // Function to compute any observable, that is function of the phase space state
+  double Tl = p.dparams["Tl"];
+  double Tr = p.dparams["Tr"];
+  double m = p.dparams["m"];
+  double a = p.dparams["a"];
+  double thetaL = p.dparams["thetaL"];
+  double thetaR = p.dparams["thetaR"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+
+  int  k = 2*dim;
+  int     i,j,n;
+  double  r1 =0.0, r2 =0.0;
+  // static std::vector <double> F;
+  // F.assign (N, 0.0);
+  double flux = 0;
+
+  // considero le particelle a distanza 5 dai termostati
+  for(i = 6; i <= N-5; i++){
+    n = k*i;
+    r2 =r1;    
+    r1 = (Y[n+k] - Y[n] - a);
+    // eq. for momentum
+    flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
+             Alpha*(r1*r1 - r2*r2) + 
+             bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+  }
+  
+  
+  
+
+  return flux/N;
+}
 double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
   int dim = p.iparams["dim"];

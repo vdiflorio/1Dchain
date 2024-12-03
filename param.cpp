@@ -1,6 +1,6 @@
 #include <fstream>
 #include <iomanip>
-#include <nlohmann/json.hpp>
+#include "json.hpp"
 
 #include "param.h"
 
@@ -20,7 +20,7 @@ params_t p{
     {"alpha", 0.0},
     {"beta", 0.5},
     {"Tl", 1.0},
-    {"Tr", 5.0},
+    {"Tr", 1.0},
     {"thetaL", 1.0},
     {"thetaR", 1.0}
   },

@@ -12,6 +12,8 @@ double observable(std::vector<double> &Y);
 
 double observable_tot(std::vector<double> &Y);
 
+double observable_bulk(std::vector<double> &Y);
+
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq);
 
 int save_condizioni_iniziali(int num_catene);
