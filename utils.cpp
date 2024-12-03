@@ -4,6 +4,7 @@
 
 #include "utils.h"
 #include <cstdint>
+#include <sstream>
 #include <random>
 #include <chrono>
 #include <sys/mman.h>
@@ -11,30 +12,93 @@
 #include <unistd.h>
 
 double omega_0(std::vector<double> &Y, double T){
-    // Function to compute the dissipation function wrt the initial density
-    int     j,k;   
-    k = 2*dim;
-    double  omega=0.0;
-    
-    for(j =0; j<dim; j++){
+  // Function to compute the dissipation function wrt the initial density
+  int     j,k;   
+  k = 2*dim;
+  double  omega=0.0;
+  
+  for(j =0; j<dim; j++){
+    omega+=Y[k*(N+2)+1]*Y[k*N+dim+j]*Y[k*N+dim+j]*(1.0/Tr-1.0/T)/m +
+           Y[k*(N+2)]*Y[k+dim+j]*Y[k+dim+j]*(1.0/Tl-1.0/T)/m;
+  } 
 
-        
-
-        omega+=Y[k*(N+2)+1]*Y[k*N+dim+j]*Y[k*N+dim+j]*(1.0/Tr-1.0/T)/m +
-               Y[k*(N+2)]*Y[k+dim+j]*Y[k+dim+j]*(1.0/Tl-1.0/T)/m;
-    } 
-
-    return omega;
+  return omega;
 }
 
 
 
 double TTCF(std::function<double(std::vector<double>&)> obs, double omega ,std::vector<double> &Y,double T){
     // Function to compute the TTCF
-
-
-
     return obs(Y)*omega;
+}
+
+double observable_tot(std::vector<double> &Y){
+    // Function to compute any observable, that is function of the phase space state
+  int k = 2*dim;
+  int     i,j,n;
+  double  r1 =0.0, r2 =0.0;
+  // static std::vector <double> F;
+  // F.assign (N, 0.0);
+  double flux = 0;
+  double F_l, F_r;
+  double Psi1, Psi2;          // DEFINISCO LE VARIABILI DEL TERMOSTATO
+  double kin1 =0.0, kinN=0.0; // energia kin della prima e ultima 
+                              // particlella mobile
+  Psi1 = Y[k*(N+2)];
+  Psi2 = Y[k*(N+2)+1];
+
+  //eq. for termostat
+  F_l   = (kin1/Tl -1.0)/(thetaL*thetaL); //left
+  F_r = (kinN/Tr -1.0)/(thetaR*thetaR); //right
+  
+    
+  ////////////////////////////////////
+  
+  ////////////////////////////////////
+  
+  i = 1;  //la prima particella che si può muovere   
+  n = k*i;
+  r1 = (Y[n+k] - Y[n] - a);
+  r2 = (Y[n] - Y[n-k] - a);   
+  // eq. for momentum
+  flux = (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
+             Alpha*(r1*r1 - r2*r2) + 
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi1*F_l)*Y[n+dim]/m;
+   
+    
+  
+  ////////////////////////////////////
+  
+  
+  // le altre N-2 masse
+  
+  for(i = 2; i < N; i++){
+    n = k*i;
+       
+    r2 =r1;    
+    r1 = (Y[n+k] - Y[n] - a);
+
+   
+    // eq. for momentum
+    flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
+             Alpha*(r1*r1 - r2*r2) + 
+             bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+  }
+
+  //l' ultima massa mobile 
+  i = N;
+  n = k*i;
+  r2 = r1;
+  r1 = (Y[n+k] - Y[n] - a);
+
+  // eq. for momentum
+  flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
+             Alpha*(r1*r1 - r2*r2) + 
+             bet*(r1*r1*r1 - r2*r2*r2) - Psi2*F_r)* Y[n+dim]/m;   
+  
+  
+
+  return flux/N;
 }
 
 double observable(std::vector<double> &Y){
