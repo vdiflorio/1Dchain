@@ -130,12 +130,9 @@ double observable_bulk(std::vector<double> &Y){
   int  k = 2*dim;
   int     i,j,n;
   double  r1 =0.0, r2 =0.0;
-  // static std::vector <double> F;
-  // F.assign (N, 0.0);
   double flux = 0;
-
-  // considero le particelle a distanza 5 dai termostati
-  for(i = 6; i <= N-5; i++){
+  int bd_paticle = N*0.15;
+  for(i = 1+bd_paticle; i <= N-bd_paticle; i++){
     n = k*i;
     r2 =r1;    
     r1 = (Y[n+k] - Y[n] - a);
@@ -145,10 +142,7 @@ double observable_bulk(std::vector<double> &Y){
              bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
   }
   
-  
-  
-
-  return flux/N;
+  return flux/(N-bd_paticle*2);
 }
 double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
