@@ -10,6 +10,8 @@ double TTCF(std::function<double(std::vector<double> &)> obs, double omega,std::
 
 double observable(std::vector<double> &Y);
 
+double dumb_observable(std::vector<double> &Y);
+
 double observable_tot(std::vector<double> &Y);
 
 double observable_bulk(std::vector<double> &Y);

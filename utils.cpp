@@ -113,6 +113,9 @@ double observable_tot(std::vector<double> &Y){
   return flux/N;
 }
 
+
+
+
 double observable_bulk(std::vector<double> &Y){
   // Function to compute any observable, that is function of the phase space state
   double Tl = p.dparams["Tl"];
@@ -131,7 +134,7 @@ double observable_bulk(std::vector<double> &Y){
   int     i,j,n;
   double  r1 =0.0, r2 =0.0;
   double flux = 0;
-  int bd_paticle = N*0.15;
+  int bd_paticle = 1;//N*0.15;
   for(i = 1+bd_paticle; i <= N-bd_paticle; i++){
     n = k*i;
     r2 =r1;    
@@ -151,6 +154,16 @@ double observable(std::vector<double> &Y){
   
   int k = 2*dim;
   return -Y[k*(N+2)]*Y[k+dim]*Y[k+dim]+Y[k*(N+2)+1]*Y[k*N+dim]*Y[k*N+dim];
+}
+
+
+double dumb_observable(std::vector<double> &Y){
+    // Function to compute any observable, that is function of the phase space state
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  
+  int k = 2*dim;
+  return Y[20] - Y[18];
 }
 
 

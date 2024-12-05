@@ -1,25 +1,25 @@
 {
     "dparams": {
-        "dt": 0.0005,
+        "dt": 0.001,
         "Tl": 1.0,
-        "Tr": 1.3,
+        "Tr": 2.0,
         "a": 1.0,
         "alpha": 0.0,
-        "beta": 0.5,
+        "beta": 1.0,
         "chi": 1.0,
         "m": 1.0,
         "thetaL": 1.0,
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 30,
+        "N": 50,
         "dim": 1,
-        "step": 50000,
+        "step": 100000,
         "catene_CI": 1,
-        "catene_scelte": 100
+        "catene_scelte": 1000000
     },
     "sparams": {
-        "dir": "single_data"
+        "dir": "script"
     },
     "bparams": {
         "save_conditions": false
