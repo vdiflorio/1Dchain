@@ -145,19 +145,21 @@ if (!time_average){
   for (int i = 0; i < X_local.size(); ++i) {
     omega_vec[i] = omega_0(X_local[i], T_init); 
     ttcf_mean_prev += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
-    // obs_mean_prev += observable (X_local[i]);
+    obs_mean_prev += observable_bulk(X_local[i]);
     omega_mean += omega_vec[i];
   }
 
 
   MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
   MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
+  MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
 
   if (rank == 0){
     ttcf_mean_prev = ttcf_mean_prev/catene_scelte;
     obs_mean_prev = obs_mean_prev/catene_scelte;
     omega_mean = omega_mean/catene_scelte;
     std::cout << "Media della omega: " << omega_mean << std::endl;
+    std::cout << "Media osservabile: " << obs_mean_prev << std::endl;
   }
 
 
