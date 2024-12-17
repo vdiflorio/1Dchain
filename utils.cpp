@@ -134,7 +134,7 @@ double observable_bulk(std::vector<double> &Y){
   int     i,j,n;
   double  r1 =0.0, r2 =0.0;
   double flux = 0;
-  int bd_paticle = 1;//N*0.15;
+  int bd_paticle = N*0.15;
   for(i = 1+bd_paticle; i <= N-bd_paticle; i++){
     n = k*i;
     r2 =r1;    
@@ -340,13 +340,13 @@ int save_condizioni_iniziali(int num_catene)
 
     //EVOLUZIONE SISTEMA
     for(h=1; h<=step - no_step; h++){
-      RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      // RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
       t += dt; 
     }
     for(h=step - no_step; h<=step; h++){   
-      RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      // RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
       t += dt; 
       if (drand48()<0.005){
         condizioni.push_back(X);
@@ -383,4 +383,83 @@ int save_condizioni_iniziali(int num_catene)
 
 
   return 0;
+}
+
+
+double compute_mean(int num_catene)
+{
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  double a = p.dparams["a"];
+
+  int      neq = (N+2)*2*dim + 2;
+  std::vector<double> X(neq);
+  long int step = 50000000;
+  long int h;
+  long int no_step  = 8000000;
+  long int progress = 0;
+  int      k,i,j,l,n;
+  double   t, dt;
+  double   X0[dim];  //unità di spaziatura
+  double   X_eq[dim*(N+2)]; //vettore contenete posizioni di equilibrio meccanico (potrebbe essere cancellato)
+  double cum_mean = 0;
+  std::vector<std::vector<double>> condizioni;
+  
+  k  = 2*dim;   
+  t  = 0.0;    //tempo zero
+  dt = 1.e-3;  //intervallo di integrazione
+
+  X0[0] = a;   // nodes only along x-axis
+  // Nodes position at mechanical equilibrium (potrebbe non essere utile per il codice)
+  for(j=0;j<=N+1; j++){
+    l = dim*j;
+    for(i=0;i<dim; i++){
+      X_eq[l+i] = j*X0[i];
+    }
+  }
+  int pd = 0;
+  for (int ii = 0; ii<num_catene; ++ii){
+    std::cout << "\n\n CATENA NUMERO: " << ii+1 << std::endl << std::endl;
+
+    // INIZILIZZAZIONE VETTORI
+    for(i=0; i < neq; i++) { X[i] = 0.0; } 
+    X[k*(N+2)]   = 1.0; //inizializzazione termostato di sinistra
+    X[k*(N+2)+1] = 1.0; //inizializzazione termostato di destra
+    ////////////////////////////////////////////////////////////////
+        
+    double alfa = 1.0;  // fattore di stretching
+    
+    // CONDIZIONE INIZIALE per posizione e velocità
+    srand48(time(NULL));          // Initialize the sequence
+    for (j= 1; j<=N; j++){
+      n=k*j;
+      l=dim*j;
+      for (i= 0; i<dim; ++i){
+        X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4;  //posizione
+        X[n+i+dim]= drand48()*0.2 - 0.1;  //velocità
+      }
+    }
+    X[(N+1)*k] = X_eq[(N+1)*dim]*alfa; //l'ultima particella è fissa
+    
+    
+
+    //EVOLUZIONE SISTEMA
+    for(h=1; h<=step - no_step; h++){
+      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      t += dt; 
+    }
+    for(h=step - no_step; h<=step; h++){   
+      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      t += dt; 
+      cum_mean+=observable_bulk(X);
+    
+    }
+  }
+
+  
+
+
+  return cum_mean/no_step;
 }

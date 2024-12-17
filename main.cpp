@@ -36,8 +36,9 @@ int main(int argc, char** argv) {
   int catene_CI = p.iparams["catene_CI"];  // numero di catene per generare CI
   int catene_scelte = p.iparams["catene_scelte"];  // numero di catene
   bool save_conditions = p.bparams["save_conditions"];
+  bool time_average = p.bparams["time_average"];
   double dt = p.dparams["dt"];
-
+  double ergodic_mean;
   ////////////////////////////////////
   int  neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
@@ -49,6 +50,28 @@ int main(int argc, char** argv) {
     std::cout << "\nSalvatggio condizioni iniziali su " << catene_CI << " catene";
   	save_condizioni_iniziali(catene_CI);
   }
+  if (rank == 0 && time_average){
+    std::cout << "\nTime average ";
+  	ergodic_mean=compute_mean(catene_CI);
+    std::ostringstream filename;
+    
+    filename << p.sparams["dir"] << "/ergodic_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
+    // Open file and save ergodic_mean
+    std::ofstream outfile(filename.str());
+    
+    if (outfile.is_open()) {
+        outfile << "Ergodic mean: " << ergodic_mean << std::endl;
+        outfile.close();
+        std::cout << "Ergodic mean saved in file: " << filename.str() << std::endl;
+    } else {
+        std::cerr << "Error opening file: " << filename.str() << std::endl;
+    }
+  // Creazione del nome del file con N e Tr
+    
+     
+  }
+
+if (!time_average){
   std::ofstream fdata;
   // Solo il processo 0 legge il file binario
   std::ostringstream file_name;
@@ -193,7 +216,7 @@ int main(int argc, char** argv) {
   double end_time = MPI_Wtime();  // end timer for ETA calculation
   if (rank == 0)
     std::cout <<"\nTotal simulation time: " << end_time - start_time << std::endl;
-
+}
   MPI_Finalize();
 	return 0;
 }
