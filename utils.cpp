@@ -132,21 +132,24 @@ double observable_bulk(std::vector<double> &Y){
 
   int  k = 2*dim;
   int     i,j,n;
-  double  r1 =0.0, r2 =0.0;
+  double  r1 =0.0;
   double flux = 0;
   int bd_paticle = N*0.15;
+ 
+  
+   
   for(i = 1+bd_paticle; i <= N-bd_paticle; i++){
     n = k*i;
-    r2 =r1;    
+    
     r1 = (Y[n+k] - Y[n] - a);
     // eq. for momentum
-    flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-             Alpha*(r1*r1 - r2*r2) + 
-             bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+    flux += (chi*(r1) + 
+             Alpha*(r1*r1) + 
+             bet*(r1*r1*r1))*Y[n+dim]/m;
     
   }
-  
-  return flux/(N-bd_paticle*2);
+  //std::cout<<(N-bd_paticle*2.0)<<"  "<<flux<<" "<<flux/(N-bd_paticle*2.0)<<std::endl;
+  return flux/(N-bd_paticle*2.0);
 }
 double observable(std::vector<double> &Y){
     // Function to compute any observable, that is function of the phase space state
@@ -159,12 +162,8 @@ double observable(std::vector<double> &Y){
 
 
 double dumb_observable(std::vector<double> &Y){
-    double Tl = p.dparams["Tl"];
-  double Tr = p.dparams["Tr"];
   double m = p.dparams["m"];
   double a = p.dparams["a"];
-  double thetaL = p.dparams["thetaL"];
-  double thetaR = p.dparams["thetaR"];
   double chi = p.dparams["chi"];
   double bet = p.dparams["beta"];
   double Alpha = p.dparams["alpha"];
@@ -173,17 +172,16 @@ double dumb_observable(std::vector<double> &Y){
 
   int  k = 2*dim;
   int     i,j,n;
-  double  r1 =0.0, r2 =0.0;
+  double  r1 =0.0;
   double flux = 0;
   
-  
-    n = N;
-    r2 =r1;    
+   int bd_paticle = N*0.15; 
+    n = k*(1+bd_paticle);    
     r1 = (Y[n+k] - Y[n] - a);
     // eq. for momentum
-    flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
-             Alpha*(r1*r1 - r2*r2) + 
-             bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+    flux = (chi*(r1) + 
+             Alpha*(r1*r1) + 
+             bet*(r1*r1*r1))*Y[n+dim]/m;
   
   
   return flux;

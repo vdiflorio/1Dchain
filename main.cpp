@@ -144,8 +144,8 @@ if (!time_average){
 
   for (int i = 0; i < X_local.size(); ++i) {
     omega_vec[i] = omega_0(X_local[i], T_init); 
-    ttcf_mean_prev += TTCF(dumb_observable, omega_vec[i],X_local[i], T_init);
-    obs_mean_prev += dumb_observable(X_local[i]);
+    ttcf_mean_prev += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
+    obs_mean_prev += observable_bulk(X_local[i]);
     omega_mean += omega_vec[i];
   }
 
@@ -185,7 +185,7 @@ if (!time_average){
       RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
       // RK4Step(t, X_local[i], AlfaBetaFPUT, dt,neq);   // integration of the function
       t_vec[i] += dt;
-      ttcf_mean += TTCF(dumb_observable, omega_vec[i],X_local[i], T_init);
+      ttcf_mean += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
     }
 
     MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
