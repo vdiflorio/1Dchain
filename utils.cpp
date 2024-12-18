@@ -143,6 +143,7 @@ double observable_bulk(std::vector<double> &Y){
     flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
              Alpha*(r1*r1 - r2*r2) + 
              bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+    
   }
   
   return flux/(N-bd_paticle*2);
@@ -158,12 +159,34 @@ double observable(std::vector<double> &Y){
 
 
 double dumb_observable(std::vector<double> &Y){
-    // Function to compute any observable, that is function of the phase space state
+    double Tl = p.dparams["Tl"];
+  double Tr = p.dparams["Tr"];
+  double m = p.dparams["m"];
+  double a = p.dparams["a"];
+  double thetaL = p.dparams["thetaL"];
+  double thetaR = p.dparams["thetaR"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
+
+  int  k = 2*dim;
+  int     i,j,n;
+  double  r1 =0.0, r2 =0.0;
+  double flux = 0;
   
-  int k = 2*dim;
-  return Y[20] - Y[18];
+  
+    n = N;
+    r2 =r1;    
+    r1 = (Y[n+k] - Y[n] - a);
+    // eq. for momentum
+    flux += (chi*(Y[n+k] + Y[n-k] - 2.0*Y[n] ) + 
+             Alpha*(r1*r1 - r2*r2) + 
+             bet*(r1*r1*r1 - r2*r2*r2))*Y[n+dim]/m;
+  
+  
+  return flux;
 }
 
 
