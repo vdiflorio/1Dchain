@@ -52,22 +52,8 @@ int main(int argc, char** argv) {
   }
   if (rank == 0 && time_average){
     std::cout << "\nTime average ";
-  	ergodic_mean=compute_mean(catene_CI);
-    std::ostringstream filename;
-    
-    filename << p.sparams["dir"] << "/ergodic_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
-    // Open file and save ergodic_mean
-    std::ofstream outfile(filename.str());
-    
-    if (outfile.is_open()) {
-        outfile << "Ergodic mean: " << ergodic_mean << std::endl;
-        outfile.close();
-        std::cout << "Ergodic mean saved in file: " << filename.str() << std::endl;
-    } else {
-        std::cerr << "Error opening file: " << filename.str() << std::endl;
-    }
-  // Creazione del nome del file con N e Tr
-    
+  	compute_mean(catene_CI);
+  
      
   }
 
@@ -141,11 +127,12 @@ if (!time_average){
   double obs_mean_integral = 0;
   double T_init=1.0;
   double omega_mean = 0;
+  double loc = N*0.5;
 
   for (int i = 0; i < X_local.size(); ++i) {
     omega_vec[i] = omega_0(X_local[i], T_init); 
-    ttcf_mean_prev += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
-    obs_mean_prev += observable_bulk(X_local[i]);
+    ttcf_mean_prev += TTCF(dumb_observable, omega_vec[i],X_local[i], T_init);
+    obs_mean_prev += dumb_observable(X_local[i]);
     omega_mean += omega_vec[i];
   }
 
@@ -182,10 +169,10 @@ if (!time_average){
   for ( h = 1; h <= step; ++h) {
     ttcf_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
-      RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
-      // RK4Step(t, X_local[i], AlfaBetaFPUT, dt,neq);   // integration of the function
+      //RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X_local[i], AlfaBetaFPUT, dt,neq);   // integration of the function
       t_vec[i] += dt;
-      ttcf_mean += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
+      ttcf_mean += TTCF(dumb_observable, omega_vec[i],X_local[i], T_init);
     }
 
     MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);

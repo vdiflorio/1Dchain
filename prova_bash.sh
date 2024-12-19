@@ -5,18 +5,20 @@
 #SBATCH -o output/output_%x_pid_%j.txt
 #SBATCH -e output/errors_%x_pid_%j.txt
 
-#SBATCH --nodes=8
-#SBATCH --ntasks=256
+#SBATCH --nodes=7
+#SBATCH --ntasks=224
 #SBATCH --cpus-per-task=1 
-#SBATCH --partition=long_cpu 
-#SBATCH --mem=128G
-#SBATCH --time=23:00:00  
+#SBATCH --partition=disma 
+#SBATCH --mem=32G
+#SBATCH --time=1-23:00:00  
 
 # Percorso al file JSON e al programma
-JSON_FILE="parametri.json"
+JSON_FILE="parametri_simu.json"
 #make clean all
-Tr=128
-for N in 50 100 150 500 1000; do 
+
+
+for N in 30 50 70 90 110 130 250 500; do 
+for Tr in 2 11 128; do
     #for grad in $(awk 'BEGIN{for(i=0.001;i<=0.02;i+=0.002)printf "%.4f ", i}'); do
     
     echo "Running with N=$N, Tr=$Tr"
@@ -28,10 +30,11 @@ for N in 50 100 150 500 1000; do
         #   echo "Errore durante la modifica del file JSON. Esco."
         #   exit 1
         # fi
-        mpirun -np 256 ./fput  $JSON_FILE
+        mpirun -np 224 ./fput  $JSON_FILE
     #done
     # Compress all files for the current N after completing the inner loop
     # tar -czvf short/compressed_archive_N_${N}.tar.gz short/ttcf_mil_N_${N}_Tr_*.dat
     # rm short/ttcf_mil_N_${N}_Tr_*.dat
     # python3 costante.py ${N}
+done
 done

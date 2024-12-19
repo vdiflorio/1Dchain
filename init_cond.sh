@@ -6,16 +6,17 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1 
-#SBATCH --partition=long_cpu
-#SBATCH --mem=128G
+#SBATCH --partition=disma
+#SBATCH --mem=32G
 #SBATCH --time=1-23:00:00  
 
 
 
-JSON_FILE="parametri_init.json"
+JSON_FILE="parametri.json"
 
-Tr=128
-for N in 50 100 150 500 1000; do 
+
+for N in 30 50 70 90 110 130 250 500; do 
+for Tr in 2 11 128; do
     #for grad in $(awk 'BEGIN{for(i=0.001;i<=0.02;i+=0.002)printf "%.4f ", i}'); do
     
     echo "Running with N=$N, Tr=$Tr"
@@ -27,6 +28,6 @@ for N in 50 100 150 500 1000; do
         fi
         mpirun -np 1 ./fput  $JSON_FILE
 
-
+done
 done
 

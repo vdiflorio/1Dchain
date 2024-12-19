@@ -138,7 +138,7 @@ double observable_bulk(std::vector<double> &Y){
  
   
    
-  for(i = 1+bd_paticle; i <= N-bd_paticle; i++){
+  for(i = bd_paticle; i <= N-bd_paticle; i++){
     n = k*i;
     
     r1 = (Y[n+k] - Y[n] - a);
@@ -175,8 +175,8 @@ double dumb_observable(std::vector<double> &Y){
   double  r1 =0.0;
   double flux = 0;
   
-   int bd_paticle = N*0.15; 
-    n = k*(1+bd_paticle);    
+   int bd_paticle = N*0.5; 
+    n = k*(bd_paticle);    
     r1 = (Y[n+k] - Y[n] - a);
     // eq. for momentum
     flux = (chi*(r1) + 
@@ -186,6 +186,8 @@ double dumb_observable(std::vector<double> &Y){
   
   return flux;
 }
+
+
 
 
 void read_conditions(std::vector<double>& condizioni, int num_condizioni, int neq) {
@@ -407,23 +409,28 @@ int save_condizioni_iniziali(int num_catene)
 }
 
 
-double compute_mean(int num_catene)
+void compute_mean(int num_catene)
 {
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
+  
+  double m = p.dparams["m"];
   double a = p.dparams["a"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
   long int step = 50000000;
   long int h;
-  long int no_step  = 8000000;
+  long int no_step  = 20000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
   double   X0[dim];  //unità di spaziatura
   double   X_eq[dim*(N+2)]; //vettore contenete posizioni di equilibrio meccanico (potrebbe essere cancellato)
-  double cum_mean = 0;
+  double r1;
   std::vector<std::vector<double>> condizioni;
   
   k  = 2*dim;   
@@ -439,6 +446,8 @@ double compute_mean(int num_catene)
     }
   }
   int pd = 0;
+  int bd_paticle = N*0.15;
+  std::vector<double> cum_mean(N-bd_paticle*2);
   for (int ii = 0; ii<num_catene; ++ii){
     std::cout << "\n\n CATENA NUMERO: " << ii+1 << std::endl << std::endl;
 
@@ -474,13 +483,42 @@ double compute_mean(int num_catene)
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
       RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
       t += dt; 
-      cum_mean+=observable_bulk(X);
-    
-    }
+      
+  
+      
+      for(i = bd_paticle; i <= N-bd_paticle; i++){
+        n = k*i;
+        
+        r1 = (X[n+k] - X[n] - a);
+        // eq. for momentum
+        
+        cum_mean[i-bd_paticle]+=(chi*(r1) + 
+                Alpha*(r1*r1) + 
+                bet*(r1*r1*r1))*X[n+dim]/m;
+        
+      }
+          
+        
+        }
   }
-
+  std::ostringstream filename;
+    
+    filename << p.sparams["dir"] << "/ergodic_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
+    // Open file and save ergodic_mean
+    std::ofstream outfile(filename.str());
+    
+    if (outfile.is_open()) {
+       for(i = 0; i < N-bd_paticle*2; i++){
+        outfile << "Ergodic mean: " << cum_mean[i]/no_step << std::endl;
+       }
+        outfile.close();
+        std::cout << "Ergodic mean saved in file: " << filename.str() << std::endl;
+    } else {
+        std::cerr << "Error opening file: " << filename.str() << std::endl;
+    }
+  // Creazione del nome del file con N e Tr
   
 
 
-  return cum_mean/no_step;
+  
 }
