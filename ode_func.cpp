@@ -115,17 +115,17 @@ void   AlfaBetaFPUT (double t, std::vector<double> &Y, std::vector<double> &R)
 //RSH of motion of system
 ///////////////////////////////////////////
 {
-  double Tl = p.dparams["Tl"];
-  double Tr = p.dparams["Tr"];
-  double m = p.dparams["m"];
-  double a = p.dparams["a"];
-  double thetaL = p.dparams["thetaL"];
-  double thetaR = p.dparams["thetaR"];
-  double chi = p.dparams["chi"];
-  double bet = p.dparams["beta"];
-  double Alpha = p.dparams["alpha"];
-  int dim = p.iparams["dim"];
-  int N = p.iparams["N"];
+  const double Tl = p.dparams["Tl"];
+  const double Tr = p.dparams["Tr"];
+  const double m = p.dparams["m"];
+  const double a = p.dparams["a"];
+  const double thetaL = p.dparams["thetaL"];
+  const double thetaR = p.dparams["thetaR"];
+  const double chi = p.dparams["chi"];
+  const double bet = p.dparams["beta"];
+  const double Alpha = p.dparams["alpha"];
+  const int dim = p.iparams["dim"];
+  const int N = p.iparams["N"];
 
   int     i,j,k,n;
   double  r1 =0.0, r2 =0.0;

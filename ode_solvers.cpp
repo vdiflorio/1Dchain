@@ -60,16 +60,15 @@ void RK4Step (double t, std::vector<double>  &Y,
 // of the system of equations.
 {
   int n;
-  static std::vector<double> y1, y2, y3, k1, k2, k3, k4;
-  y1.assign (neq, 0.0);
-  y2.assign (neq, 0.0);
-  y3.assign (neq, 0.0);
-  k1.assign (neq, 0.0);
-  k2.assign (neq, 0.0);
-  k3.assign (neq, 0.0);
-  k4.assign (neq, 0.0);
+  //static std::vector<double> y1, y2, y3, k1, k2, k3, k4;
+  static std::vector<double> y1(neq), y2(neq), y3(neq), k1(neq), k2(neq), k3(neq), k4(neq);
+// Clear or reset vectors only if needed
+  std::fill(y1.begin(), y1.end(), 0.0);
+  std::fill(y2.begin(), y2.end(), 0.0);
+  std::fill(y3.begin(), y3.end(), 0.0);
   
   dYdt (t, Y, k1);
+  
   
   for (n = 0; n < neq; n++){
     y1[n] = Y[n]+ 0.5*dt*k1[n];
@@ -82,13 +81,13 @@ void RK4Step (double t, std::vector<double>  &Y,
   }
 
   dYdt (t+0.5*dt, y2, k3);
-
+  
   for (n = 0; n < neq; n++){
     y3[n] = Y[n]+ dt*k3[n]; 
   }
 
   dYdt (t+dt, y3, k4);
-
+  
   for (n = 0; n < neq; n++){
     Y[n] += (dt/6.0)*(k1[n] + 2.0*k2[n] + 2.0*k3[n] +k4[n]);
   } 
