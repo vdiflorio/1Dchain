@@ -8,8 +8,8 @@ if len(sys.argv) != 4:
 
 file_path = sys.argv[1]
 new_n = int(sys.argv[2])
-new_tr = float(sys.argv[3])
-#new_tr = 1 + new_grad*new_n
+new_grad = float(sys.argv[3])
+new_tr = 1 + new_grad*new_n
 
 # Funzione per modificare `N` e `Tr`
 def modify_n_and_tr(file_path, new_n, new_tr):
