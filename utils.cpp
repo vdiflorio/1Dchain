@@ -237,7 +237,7 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
     // Prepara il vettore per le condizioni
     condizioni.reserve(num_condizioni * neq);
 
-    int64_t num_selezioni = num_condizioni;// / 2; // Numero di indici da selezionare
+    int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
 
     // Genera un vettore con tutti gli indici
     std::vector<int64_t> all_indices(num_condizioni);
@@ -257,7 +257,7 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
     int read_count = 0;
 
     // Lettura dei dati
-    for (int i = 0; i < num_condizioni; ++i) {
+    for (int i = 0; i < num_condizioni/2; ++i) {
       // Calcolare l'offset per l'indice casuale
       std::streampos offset = indices[i] * dimensione_condizione;
 
@@ -281,22 +281,22 @@ void read_conditions(std::vector<double>& condizioni, int num_condizioni, int ne
     }
 
     // // Modifica delle condizioni per il secondo ciclo
-    // for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
-    //     for (int j = 0; j < neq; ++j) {
-    //         if (j < neq - 2) {
-    //             // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
-    //             if (j % 2 != 0) {
-    //                 condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
-    //             } else {
-    //                 // Per i componenti pari, copia semplicemente
-    //                 condizioni[k * neq + j] = condizioni[(k - num_condizioni / 2) * neq + j];
-    //             }
-    //         } else {
-    //             // Per gli ultimi due componenti, moltiplica per -1
-    //             condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
-    //         }
-    //     }
-    // }
+    for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
+        for (int j = 0; j < neq; ++j) {
+            if (j < neq - 2) {
+                // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
+                if (j % 2 != 0) {
+                    condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
+                } else {
+                    // Per i componenti pari, copia semplicemente
+                    condizioni[k * neq + j] = condizioni[(k - num_condizioni / 2) * neq + j];
+                }
+            } else {
+                // Per gli ultimi due componenti, moltiplica per -1
+                condizioni[k * neq + j] = -condizioni[(k - num_condizioni / 2) * neq + j];
+            }
+        }
+    }
 
     // Libera la memoria mappata e chiudi il file
     munmap(file_memory, file_size);
@@ -422,9 +422,9 @@ void compute_mean(int num_catene)
 
   int      neq = (N+2)*2*dim + 2;
   std::vector<double> X(neq);
-  long int step = 50000000;
+  long int step = 10000000000;
   long int h;
-  long int no_step  = 20000000;
+  long int no_step  = 10000000000-2000000000;
   long int progress = 0;
   int      k,i,j,l,n;
   double   t, dt;
