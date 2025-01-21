@@ -173,7 +173,7 @@ if (!time_average){
     ttcf_mean = 0;
     for (int i = 0; i < X_local.size(); ++i) {
       //RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
-      RK4Step(t, X_local[i], AlfaBetaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X_local[i], LepriChain, dt,neq);   // integration of the function
       t_vec[i] += dt;
       ttcf_mean += TTCF(observable_bulk, omega_vec[i],X_local[i], T_init);
     }
@@ -204,7 +204,7 @@ if (!time_average){
 //     for (int i = 0; i < X_local.size(); ++i) {
 //         auto step_start = std::chrono::steady_clock::now();
 
-//         RK4Step(t, X_local[i], AlfaBetaFPUT, dt, neq); // integration of the function
+//         RK4Step(t, X_local[i], LepriChain, dt, neq); // integration of the function
 //         auto rk4_end = std::chrono::steady_clock::now();
 
 //         t_vec[i] += dt;

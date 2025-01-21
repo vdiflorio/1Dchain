@@ -330,6 +330,7 @@ void  LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
   double bet = p.dparams["beta"];
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
+  double spring = 1.0;
 
   int     i,j,k,n;
   double  r1 =0.0, r2 =0.0;
@@ -371,8 +372,9 @@ void  LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
   R[n] = Y[n+dim]/m;
    
   // eq. for momentum
-  R[n+dim] = Y[n+k] + Y[n-k] - 3.0*Y[n] - 
-             r1*r1*r1 + a - Psi1*R[n];
+  R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
+              spring*(- Y[n] - 
+               r1*r1*r1 + a) - Psi1*R[n];
    
   ////////////////////////////////////
   
@@ -382,27 +384,29 @@ void  LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
   for(i = 2; i < N; i++){
     n = k*i;
        
-    r1 = (Y[n] - a);
+    r1 = (Y[n] - i*a);
     
     // eq. for position
     R[n] = Y[n+dim]/m;
    
     // eq. for momentum
-    R[n+dim] = Y[n+k] + Y[n-k] - 3.0*Y[n] - 
-               r1*r1*r1 + a;
+    R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
+              spring*(- Y[n] - 
+               r1*r1*r1 + i*a);
   }
 
   //l' ultima massa mobile 
   i = N;
   n = k*i;
-  r1 = (Y[n] - a);
+  r1 = (Y[n] - i*a);
   
   // eq. for position
   R[n] = Y[n+dim]/m;
    
   // eq. for momentum
-  R[n+dim] = Y[n+k] + Y[n-k] - 3.0*Y[n] - 
-             r1*r1*r1 + a - Psi2*R[n] ;   
+  R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
+              spring*(- Y[n] - 
+               r1*r1*r1 + i*a) - Psi2*R[n] ;   
   
     
   ////////////////////////////////////

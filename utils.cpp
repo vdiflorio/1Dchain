@@ -364,12 +364,12 @@ int save_condizioni_iniziali(int num_catene)
     //EVOLUZIONE SISTEMA
     for(h=1; h<=step - no_step; h++){
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, LepriChain, dt,neq);   // integration of the function
       t += dt; 
     }
     for(h=step - no_step; h<=step; h++){   
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, LepriChain, dt,neq);   // integration of the function
       t += dt; 
       if (drand48()<0.005){
         condizioni.push_back(X);
@@ -382,7 +382,7 @@ int save_condizioni_iniziali(int num_catene)
   int dimension_condizioni;
   dimension_condizioni = condizioni.size();
   std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
+  name << "lepri_chain/condizioni_" << N << ".bin";
   
   // Apertura del file con il nome dinamico
   std::ofstream outFile(name.str(), std::ios::binary);
@@ -476,12 +476,12 @@ void compute_mean(int num_catene)
     //EVOLUZIONE SISTEMA
     for(h=1; h<=step - no_step; h++){
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, LepriChain, dt,neq);   // integration of the function
       t += dt; 
     }
     for(h=step - no_step; h<=step; h++){   
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step(t, X, AlfaBetaFPUT, dt,neq);   // integration of the function
+      RK4Step(t, X, LepriChain, dt,neq);   // integration of the function
       t += dt; 
       
   
