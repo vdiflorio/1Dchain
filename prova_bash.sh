@@ -8,7 +8,7 @@
 #SBATCH --nodes=7
 #SBATCH --ntasks=224
 #SBATCH --cpus-per-task=1 
-#SBATCH --partition=disma 
+#SBATCH --partition=disma
 #SBATCH --mem=32G
 #SBATCH --time=1-23:00:00  
 
@@ -17,12 +17,11 @@ JSON_FILE="parametri_simu.json"
 #make clean all
 
 
-for N in 30 50 70 90 110 130 250 500; do 
-for Tr in 2 11 128; do
-    #for grad in $(awk 'BEGIN{for(i=0.001;i<=0.02;i+=0.002)printf "%.4f ", i}'); do
+for N in 600 750 800 1000; do 
+for grad in 0.0001 0.001 0.01 0.1 1; do
     
     echo "Running with N=$N, Tr=$Tr"
-    python3 scriptino.py "$JSON_FILE" "$N" "$Tr"
+    python3 scriptino.py "$JSON_FILE" "$N" "$grad"
         # echo "Running with N=$N, gradT=$grad"
         # python3 scriptino.py "$JSON_FILE" "$N" "$grad"
         # # Controlla se la modifica è riuscita

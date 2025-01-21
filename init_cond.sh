@@ -15,12 +15,11 @@
 JSON_FILE="parametri.json"
 
 
-for N in 30 50 70 90 110 130 250 500; do 
-for Tr in 2 11 128; do
-    #for grad in $(awk 'BEGIN{for(i=0.001;i<=0.02;i+=0.002)printf "%.4f ", i}'); do
+for N in 50; do #100 200 300 400 500 750 1000; do 
+#for grad in 0.0001 0.001 0.01 0.1 1; do
     
     echo "Running with N=$N, Tr=$Tr"
-    python3 scriptino.py "$JSON_FILE" "$N" "$Tr"
+    python3 scriptino.py "$JSON_FILE" "$N" "0"
         # Controlla se la modifica è riuscita
         if [ $? -ne 0 ]; then
           echo "Errore durante la modifica del file JSON. Esco."
@@ -28,6 +27,6 @@ for Tr in 2 11 128; do
         fi
         mpirun -np 1 ./fput  $JSON_FILE
 
-done
+#done
 done
 

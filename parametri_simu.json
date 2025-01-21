@@ -2,27 +2,27 @@
     "dparams": {
         "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 1.0,
+        "Tr": 1.8,
         "a": 1.0,
-        "alpha": 0.0,
-        "beta": 0.0,
+        "alpha": 1.0,
+        "beta": 1.0,
         "chi": 1.0,
         "m": 1.0,
         "thetaL": 1.0,
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 50,
+        "N": 800,
         "dim": 1,
-        "step": 100,
-        "catene_CI": 100,
-        "catene_scelte": 100
+        "step": 200000,
+        "catene_CI": 1,
+        "catene_scelte": 1000000
     },
     "sparams": {
-        "dir": "ergodic_dtfix"
+        "dir": "dt_fix_due"
     },
     "bparams": {
-        "save_conditions": true,
+        "save_conditions": false,
         "time_average": false
     }
 }
