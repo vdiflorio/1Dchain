@@ -6,7 +6,7 @@
 #include <string>
 
 struct
-params_t {
+  params_t {
 
   std::unordered_map<std::string, int> iparams;
   std::unordered_map<std::string, double> dparams;

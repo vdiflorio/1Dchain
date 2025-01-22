@@ -31,20 +31,22 @@ params_t p{
   {
     {"save_conditions", false}
   }
-}; 
+};
 
 std::ostream&
-operator<< (std::ostream& os, const params_t& p) {
-  nlohmann::json my_json{{"iparams", p.iparams}, 
-                         {"dparams", p.dparams}, 
-                         {"sparams", p.sparams},
-                         {"bparams", p.bparams}};
-  os << std::setw(4) << my_json;
+operator<< (std::ostream& os, const params_t& p)
+{
+  nlohmann::json my_json{{"iparams", p.iparams},
+    {"dparams", p.dparams},
+    {"sparams", p.sparams},
+    {"bparams", p.bparams}};
+  os << std::setw (4) << my_json;
   return os;
 };
 
 std::istream&
-operator>> (std::istream& is, params_t& p) {
+operator>> (std::istream& is, params_t& p)
+{
   nlohmann::json my_json;
   is >> my_json;
 
@@ -56,14 +58,16 @@ operator>> (std::istream& is, params_t& p) {
 }
 
 void
-params_t::read (const std::string &fname) {
-  std::ifstream fparametri(fname.c_str ());
+params_t::read (const std::string &fname)
+{
+  std::ifstream fparametri (fname.c_str ());
   fparametri >> (*this);
 };
 
 void
-params_t::write (const std::string &fname) {
-  std::ofstream fparametri(fname.c_str ());
+params_t::write (const std::string &fname)
+{
+  std::ofstream fparametri (fname.c_str ());
   fparametri << (*this);
   fparametri.close ();
 };

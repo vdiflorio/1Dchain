@@ -9,7 +9,7 @@
 #include <algorithm>
 
 
-void betaFPUT (double t, std::vector<double> &Y, std::vector<double> &R);  //real FPUT
+void betaFPUT (double t, std::vector<double> &Y, std::vector<double> &R); //real FPUT
 
 void LJ (double t, std::vector<double> &Y, std::vector<double> &R);
 
