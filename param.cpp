@@ -25,6 +25,7 @@ params_t p{
     {"thetaR", 1.0}
   },
   {
+    {"dir_CI", "leprichain"},
     {"dir", "single_data"}
   },
   {
