@@ -206,7 +206,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
+  name << p.sparams["dir_CI"] << "/condizioni_" << N << ".bin";
   std::string filename = name.str();
 
   // Apertura del file con il nome dinamico
@@ -406,7 +406,7 @@ int save_condizioni_iniziali (int num_catene)
   int dimension_condizioni;
   dimension_condizioni = condizioni.size();
   std::ostringstream name;
-  name << "lepri_chain/condizioni_" << N << ".bin";
+  name << p.sparams["dir_CI"] <<"/condizioni_" << N << ".bin";
 
   // Apertura del file con il nome dinamico
   std::ofstream outFile (name.str(), std::ios::binary);

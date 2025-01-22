@@ -19,6 +19,7 @@
         "catene_scelte": 1000000
     },
     "sparams": {
+        "dir_CI": "lepri_chain",
         "dir": "dt_fix_due"
     },
     "bparams": {
