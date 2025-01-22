@@ -19,6 +19,7 @@
         "catene_scelte": 100
     },
     "sparams": {
+        "dir_CI": "lepri_chain",
         "dir": "ergodic_dtfix"
     },
     "bparams": {
