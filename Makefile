@@ -2,7 +2,7 @@ CXX=mpicxx
 CPPFLAGS=-I/opt/local/include
 LIBS=-lmpi
 CXXFLAGS= -std=c++17 -Ofast -mtune=native -march=native
-
+#CXXFLAGS= -std=c++17 -O2 -fsanitize=address -g
 all : fput
 
 %.o : %.cpp

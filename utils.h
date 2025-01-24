@@ -21,6 +21,6 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
 int save_condizioni_iniziali (int num_catene);
 
 
-void compute_mean (int num_catene);
+void compute_mean ( );
 
 #endif

@@ -437,7 +437,7 @@ int save_condizioni_iniziali (int num_catene)
 }
 
 
-void compute_mean (int num_catene)
+void compute_mean ()
 {
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
@@ -450,9 +450,9 @@ void compute_mean (int num_catene)
 
   int neq = (N+2)*2*dim + 2;
   std::vector<double> X (neq);
-  long int step = 10000000000;
+  long int step = 2000000;
   long int h;
-  long int no_step = 10000000000-2000000000;
+  long int no_step = 2000000-500000;
   long int progress = 0;
   int k,i,j,l,n;
   double t, dt;
@@ -463,7 +463,7 @@ void compute_mean (int num_catene)
 
   k = 2*dim;
   t = 0.0; //tempo zero
-  dt = 1.e-3; //intervallo di integrazione
+  dt = 1.e-2; //intervallo di integrazione
 
   X0[0] = a; // nodes only along x-axis
 
@@ -476,70 +476,88 @@ void compute_mean (int num_catene)
     }
   }
 
-  int pd = 0;
   int bd_paticle = N*0.15;
   std::vector<double> cum_mean (N-bd_paticle*2);
+  std::vector<double> Temperature (N);
 
-  for (int ii = 0; ii<num_catene; ++ii) {
-    std::cout << "\n\n CATENA NUMERO: " << ii+1 << std::endl << std::endl;
+  
 
-    // INIZILIZZAZIONE VETTORI
-    for (i=0; i < neq; i++) {
-      X[i] = 0.0;
-    }
+  // INIZILIZZAZIONE VETTORI
+  for (i=0; i < neq; i++) {
+    X[i] = 0.0;
+  }
 
-    X[k* (N+2)] = 1.0; //inizializzazione termostato di sinistra
-    X[k* (N+2)+1] = 1.0; //inizializzazione termostato di destra
-    ////////////////////////////////////////////////////////////////
+  X[k* (N+2)] = 1.0; //inizializzazione termostato di sinistra
+  X[k* (N+2)+1] = 1.0; //inizializzazione termostato di destra
+  ////////////////////////////////////////////////////////////////
 
-    double alfa = 1.0; // fattore di stretching
+  double alfa = 1.0; // fattore di stretching
 
-    // CONDIZIONE INIZIALE per posizione e velocità
-    srand48 (time (NULL)); // Initialize the sequence
+  // CONDIZIONE INIZIALE per posizione e velocità
+  srand48 (time (NULL)); // Initialize the sequence
 
-    for (j= 1; j<=N; j++) {
-      n=k*j;
-      l=dim*j;
+  for (j= 1; j<=N; j++) {
+    n=k*j;
+    l=dim*j;
 
-      for (i= 0; i<dim; ++i) {
-        X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4; //posizione
-        X[n+i+dim]= drand48()*0.2 - 0.1; //velocità
-      }
-    }
-
-    X[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
-
-
-
-    //EVOLUZIONE SISTEMA
-    for (h=1; h<=step - no_step; h++) {
-      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
-      t += dt;
-    }
-
-    for (h=step - no_step; h<=step; h++) {
-      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
-      t += dt;
-
-
-
-      for (i = bd_paticle; i <= N-bd_paticle; i++) {
-        n = k*i;
-
-        r1 = (X[n+k] - X[n] - a);
-        // eq. for momentum
-
-        cum_mean[i-bd_paticle]+= (chi* (r1) +
-                                  Alpha* (r1*r1) +
-                                  bet* (r1*r1*r1))*X[n+dim]/m;
-
-      }
-
-
+    for (i= 0; i<dim; ++i) {
+      X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4; //posizione
+      X[n+i+dim]= drand48() + 0.5; //velocità
     }
   }
+
+  X[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
+
+  std::ostringstream convergence_mean;
+  convergence_mean << p.sparams["dir"] << "/ergodic_conv_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
+  // Open file and save ergodic_mean
+  std::ofstream outfile_conv (convergence_mean.str());
+  int n_conv = 1000;
+  std::vector<double> vect_conv;
+  double cum_mean_tmp=0.0;
+  int ni;
+  //EVOLUZIONE SISTEMA
+  for (h=1; h<=step - no_step; h++) {
+    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    t += dt;
+    ni = k*int(N*0.5);
+    r1 = (X[ni+k] - X[ni] - a);
+    cum_mean_tmp += (chi* (r1) +
+                    Alpha* (r1*r1) +
+                    bet* (r1*r1*r1))*X[ni+dim]/m;
+    if (h%n_conv == 0){
+      vect_conv.push_back (cum_mean_tmp/h);
+    }
+  }
+
+  for (h=step - no_step; h<=step; h++) {
+    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    t += dt;
+
+    ni = k*int(N*0.5);
+    r1 = (X[ni+k] - X[ni] - a);
+    cum_mean_tmp += (chi* (r1) +
+                    Alpha* (r1*r1) +
+                    bet* (r1*r1*r1))*X[ni+dim]/m;
+    if (h%n_conv == 0){
+      vect_conv.push_back (cum_mean_tmp/h);
+    }
+    
+    for (i = bd_paticle; i < N-bd_paticle; i++) {
+      n = k*i;
+      r1 = (X[n+k] - X[n] - a);
+      cum_mean[i-bd_paticle]+= (chi* (r1) +
+                                Alpha* (r1*r1) +
+                                bet* (r1*r1*r1))*X[n+dim]/m;
+    }
+    for (i = 1; i <= N; i++) {
+      n = k*i;
+      Temperature[i-1]+= X[n+dim]*X[n+dim]/m;
+    }
+  }
+  
 
   std::ostringstream filename;
 
@@ -551,16 +569,27 @@ void compute_mean (int num_catene)
     for (i = 0; i < N-bd_paticle*2; i++) {
       outfile << "Ergodic mean: " << cum_mean[i]/no_step << std::endl;
     }
-
-    outfile.close();
-    std::cout << "Ergodic mean saved in file: " << filename.str() << std::endl;
+    outfile <<std::endl;
+    outfile << "@@"<<std::endl;
+    outfile <<std::endl;
+    for (i = 0; i < N; i++) {
+      outfile << "Temperature: " << Temperature[i]/no_step << std::endl;
+    }
   } else {
     std::cerr << "Error opening file: " << filename.str() << std::endl;
   }
 
-  // Creazione del nome del file con N e Tr
+  if (outfile_conv.is_open ()){
+    for (i = 0; i <vect_conv.size (); i++) {
+      outfile_conv << n_conv*(i+1) << "  " << vect_conv[i] << std::endl;
+    }
+  } else {
+    std::cerr << "Error opening file: " << convergence_mean.str() << std::endl;
+  }
 
-
-
+  outfile.close();
+  std::cout << "Ergodic mean saved in file: " << filename.str() << std::endl;
+  outfile_conv.close();
+  std::cout << "Ergodic mean convergence saved in file: " << convergence_mean.str() << std::endl;
 
 }

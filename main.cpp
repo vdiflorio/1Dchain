@@ -58,7 +58,7 @@ int main (int argc, char** argv)
 
   if (rank == 0 && time_average) {
     std::cout << "\nTime average ";
-    compute_mean (catene_CI);
+    compute_mean ();
   }
 
   if (!time_average) {
@@ -204,65 +204,6 @@ int main (int argc, char** argv)
       }
 
     }
-
-// for (h = 1; h <= step; ++h) {
-// auto start = std::chrono::steady_clock::now();
-
-// ttcf_mean = 0;
-// auto start_loop = std::chrono::steady_clock::now();
-// for (int i = 0; i < X_local.size(); ++i) {
-// auto step_start = std::chrono::steady_clock::now();
-
-// RK4Step(t, X_local[i], LepriChain, dt, neq); // integration of the function
-// auto rk4_end = std::chrono::steady_clock::now();
-
-// t_vec[i] += dt;
-// auto t_update_end = std::chrono::steady_clock::now();
-
-// ttcf_mean += TTCF(observable_bulk, omega_vec[i], X_local[i], T_init);
-// auto ttcf_end = std::chrono::steady_clock::now();
-
-// std::cout << "RK4Step: "
-// << std::chrono::duration_cast<std::chrono::microseconds>(rk4_end - step_start).count()
-// << " us, t_vec update: "
-// << std::chrono::duration_cast<std::chrono::microseconds>(t_update_end - rk4_end).count()
-// << " us, TTCF: "
-// << std::chrono::duration_cast<std::chrono::microseconds>(ttcf_end - t_update_end).count()
-// << " us\n";
-// }
-// auto loop_end = std::chrono::steady_clock::now();
-
-// MPI_Reduce(rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
-// auto mpi_end = std::chrono::steady_clock::now();
-
-// if (rank == 0) {
-// auto reduce_start = std::chrono::steady_clock::now();
-
-// ttcf_mean = ttcf_mean / catene_scelte;
-
-// ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev) * dt * 0.5;
-
-// std::ostringstream oss;
-// oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
-// buffer.push_back(oss.str());
-
-// if (buffer.size() >= buffer_size) {
-// std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<std::string>(fdata, ""));
-// buffer.clear(); // Empty the buffer after writing
-// }
-// ttcf_mean_prev = ttcf_mean;
-
-// auto reduce_end = std::chrono::steady_clock::now();
-// std::cout << "Reduce + Buffer: "
-// << std::chrono::duration_cast<std::chrono::microseconds>(reduce_end - reduce_start).count()
-// << " us\n";
-// }
-
-// auto end = std::chrono::steady_clock::now();
-// std::cout << "Total Iteration Time: "
-// << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-// << " ms\n";
-// }
 
     if (rank == 0) {
       if (buffer.size() > 0) {
