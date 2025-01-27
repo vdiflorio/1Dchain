@@ -450,9 +450,9 @@ void compute_mean ()
 
   int neq = (N+2)*2*dim + 2;
   std::vector<double> X (neq);
-  long int step = 2000000;
+  long int step = 1000000000;
   long int h;
-  long int no_step = 2000000-500000;
+  long int no_step = 1000000000-100000000;
   long int progress = 0;
   int k,i,j,l,n;
   double t, dt;
