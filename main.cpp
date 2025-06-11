@@ -157,68 +157,57 @@ int main (int argc, char** argv)
 
 
     // Evolvere le condizioni iniziali
-    double t = 0.0;
-    std::vector<double> t_vec (X_local.size(),0);
+  double t = 0.0;
+  std::vector<double> t_vec(X_local.size(), 0.0);
 
+  // Preallocate local time series of TTCF means
+  std::vector<double> local_ttcf(step, 0.0);
 
-    // Imposta la dimensione del buffer
-    double max_memory = 1.e8; // 100 MB per vector buff
-    int max_procs = 64; // # di processori su nodo a memoria condivisa
-    size_t buffer_size = max_memory/ (max_procs*10);
-
-    if (rank==0) {
-      buffer_size = buffer_size < step ? buffer_size : step;
-      std::cout <<"\nBuffer size: " << buffer_size << std::endl;
-    }
-
-    std::vector<std::string> buffer; // Buffer in RAM per accumulare i dati
-    buffer.reserve (buffer_size);
-
-    for ( h = 1; h <= step; ++h) {
-      ttcf_mean = 0;
-
-      for (int i = 0; i < X_local.size(); ++i) {
-        //RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
-        RK4Step (t, X_local[i], AlfaBetaFPUT, dt,neq); // integration of the function
-        t_vec[i] += dt;
-        ttcf_mean += TTCF (observable_bulk, omega_vec[i],X_local[i], T_init);
-      }
-
-      MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
-
-      if (rank == 0) {
-        ttcf_mean = ttcf_mean/catene_scelte;
-        // // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
-        ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
-        std::ostringstream oss;
-        oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
-        buffer.push_back (oss.str());
-
-        // Quando il buffer è pieno, scrivi tutto sul file
-        if (buffer.size() >= buffer_size) {
-          std::copy (buffer.begin(), buffer.end(), std::ostream_iterator<std::string> (fdata, ""));
-          buffer.clear(); // Svuota il buffer dopo la scrittura
-        }
-
-        ttcf_mean_prev = ttcf_mean;
-      }
-    }
-
-    if (rank == 0) {
-      if (buffer.size() > 0) {
-        std::copy (buffer.begin(), buffer.end(), std::ostream_iterator<std::string> (fdata, ""));
-        buffer.clear(); // Svuota il buffer dopo la scrittura
-      }
-
-      fdata.close();
-    }
-
-    double end_time = MPI_Wtime(); // end timer for ETA calculation
-
-    if (rank == 0)
-      std::cout <<"\nTotal simulation time: " << end_time - start_time << std::endl;
+  // Vector to store omega values
+  for (int i = 0; i < X_local.size(); ++i) {
+    omega_vec[i] = omega_0(X_local[i], T_init);
   }
 
+  // Main time loop
+  for (int h = 0; h < step; ++h) {
+    double ttcf_mean = 0.0;
+
+    for (int i = 0; i < X_local.size(); ++i) {
+      RK4Step(t, X_local[i], AlfaBetaFPUT, dt, neq);
+      t_vec[i] += dt;
+      ttcf_mean += TTCF(observable_bulk, omega_vec[i], X_local[i], T_init);
+    }
+
+    // Store per-step average in the local buffer
+    local_ttcf[h] = ttcf_mean / X_local.size();
+    t += dt;
+  }
+
+  // Now reduce to global_ttcf vector
+  std::vector<double> global_ttcf(step, 0.0);
+
+  MPI_Reduce(
+    local_ttcf.data(),
+    global_ttcf.data(),
+    step,
+    MPI_DOUBLE,
+    MPI_SUM,
+    0,
+    mpicomm
+  );
+
+  // Rank 0: finalize average and write to file
+  std::ostringstream output_buffer;
+  output_buffer << std::setprecision(8) << std::scientific;
+
+  for (int h = 0; h < step; ++h) {
+    global_ttcf[h] /= size;
+    output_buffer << global_ttcf[h] << "\n";
+  }
+
+  fdata << output_buffer.str(); // One single write
+  fdata.close();
+  }
   MPI_Finalize();
   return 0;
 }
