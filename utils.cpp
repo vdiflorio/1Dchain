@@ -206,8 +206,10 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << p.sparams["dir_CI"] << "/condizioni_" << N << ".bin";
+  name << "condizioni_" << N << ".bin";
   std::string filename = name.str();
+
+  
 
   // Apertura del file con il nome dinamico
   int fd = open (filename.c_str(), O_RDONLY);
