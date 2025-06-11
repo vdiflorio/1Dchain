@@ -2,7 +2,7 @@
     "dparams": {
         "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 1.8,
+        "Tr": 2.0,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -12,15 +12,15 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 800,
+        "N": 1000,
         "dim": 1,
-        "step": 200000,
-        "catene_CI": 1,
+        "step": 500000,
+        "catene_CI": 1000000,
         "catene_scelte": 1000000
     },
     "sparams": {
-        "dir_CI": "lepri_chain",
-        "dir": "dt_fix_due"
+        "dir_CI": "",
+        "dir": "dt_long_long"
     },
     "bparams": {
         "save_conditions": false,
