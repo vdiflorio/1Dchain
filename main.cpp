@@ -202,7 +202,6 @@ int main (int argc, char** argv)
 
         ttcf_mean_prev = ttcf_mean;
       }
-
     }
 
     if (rank == 0) {
