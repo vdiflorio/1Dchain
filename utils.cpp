@@ -521,7 +521,7 @@ void compute_mean ()
   //EVOLUZIONE SISTEMA
   for (h=1; h<=step - no_step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
     ni = k*int(N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
@@ -535,7 +535,7 @@ void compute_mean ()
 
   for (h=step - no_step; h<=step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
 
     ni = k*int(N*0.5);
