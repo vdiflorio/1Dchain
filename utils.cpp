@@ -195,6 +195,90 @@ double dumb_observable (std::vector<double> &Y)
   return flux;
 }
 
+void generate_condition(std::vector<double>& cond) {
+  // esempio semplice: random, o perturbazione di una condizione letta
+  int neq = cond.size();
+  srand48 (time (NULL)); // Initialize the sequence
+  const double perturbation_strength = 1.e-2; // Adjust as needed
+  for (size_t j = 0; j < neq; j++) {
+    cond[j] += perturbation_strength * drand48() - perturbation_strength*0.5; // o qualcos'altro
+  }
+  int step = 1000000;
+  double t = 0.0;
+  double dt = p.dparams["dt"];
+  for (int h=1; h<= step; h++) {
+    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step (t, cond, LepriChain, dt,neq); // integration of the function
+    t += dt;
+  }
+}
+
+void read_conditions_subset (std::vector<double>& condizioni, int neq)
+{
+  // Apri il file binario
+  // Creazione del nome del file dinamico
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  int num_condizioni = 500000;
+  std::ostringstream name;
+  name << "subset_" << N << ".bin";
+  std::string filename = name.str();
+
+  
+
+  // Apertura del file con il nome dinamico
+  int fd = open (filename.c_str(), O_RDONLY);
+
+  if (fd == -1) {
+    std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
+    return;
+  }
+
+  // Ottieni la dimensione del file
+  off_t file_size = lseek (fd, 0, SEEK_END);
+
+  if (file_size == -1) {
+    std::cerr << "Errore nell'ottenere la dimensione del file!" << std::endl;
+    return;
+  }
+
+  // Mappa il file in memoria
+  void* file_memory = mmap (NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+  if (file_memory == MAP_FAILED) {
+    std::cerr << "Errore nel mappare il file in memoria!" << std::endl;
+    return;
+  }
+
+  // Dimensione di una condizione in byte
+  int dimensione_condizione = neq * sizeof (double);
+
+  // Calcola il numero di condizioni nel file
+  int numero_condizioni_tot = file_size / dimensione_condizione;
+
+  if (num_condizioni > numero_condizioni_tot) {
+    std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
+    munmap (file_memory, file_size);
+    close (fd);
+    return;
+  }
+
+  // Prepara il vettore per le condizioni
+  condizioni.reserve (num_condizioni * neq);
+
+  int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
+
+  // Genera un vettore con tutti gli indici
+  std::vector<int64_t> all_indices (num_condizioni);
+  std::iota (all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
+
+  // Mescola il vettore
+  std::random_device rd;
+  std::mt19937 gen (rd());
+  std::shuffle (all_indices.begin(), all_indices.end(), gen);
+
+  // Seleziona i primi num_selezioni indici
+  std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
 void read_and_save_conditions(std::vector<double>& condizioni, 
                               int num_condizioni, int neq, 
@@ -298,6 +382,56 @@ void read_and_save_conditions(std::vector<double>& condizioni,
 }
 
 
+  // Timer per calcolare la velocità
+  auto start_time = std::chrono::high_resolution_clock::now();
+  int read_count = 0;
+
+  // Lettura dei dati
+  for (int i = 0; i < num_condizioni/2; ++i) {
+    // Calcolare l'offset per l'indice casuale
+    std::streampos offset = indices[i] * dimensione_condizione;
+
+    // Leggere direttamente dalla memoria mappata
+    double* condizione_ptr = reinterpret_cast<double*> (static_cast<char*> (file_memory) + offset);
+    std::copy (condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
+
+    read_count++;
+
+    // Ogni 1000 letture, calcola e stampa la velocità
+    if (read_count == 100000) {
+      auto current_time = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> elapsed_time = current_time - start_time;
+      double speed = 100000.0 / elapsed_time.count(); // letture al secondo
+      std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
+
+      // Reset del timer per il prossimo intervallo di 1000 letture
+      start_time = current_time;
+
+    }
+  }
+
+  // // Modifica delle condizioni per il secondo ciclo
+  for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
+    for (int j = 0; j < neq; ++j) {
+      if (j < neq - 2) {
+        // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
+        if (j % 2 != 0) {
+          condizioni[k * neq + j] = -condizioni[ (k - num_condizioni / 2) * neq + j];
+        } else {
+          // Per i componenti pari, copia semplicemente
+          condizioni[k * neq + j] = condizioni[ (k - num_condizioni / 2) * neq + j];
+        }
+      } else {
+        // Per gli ultimi due componenti, moltiplica per -1
+        condizioni[k * neq + j] = -condizioni[ (k - num_condizioni / 2) * neq + j];
+      }
+    }
+  }
+
+  // Libera la memoria mappata e chiudi il file
+  munmap (file_memory, file_size);
+  close (fd);
+}
 
 void read_conditions (std::vector<double>& condizioni, int num_condizioni, int neq)
 {
@@ -566,7 +700,8 @@ void compute_mean ()
 
   k = 2*dim;
   t = 0.0; //tempo zero
-  dt = 1.e-2; //intervallo di integrazione
+  // dt = 1.e-2; //intervallo di integrazione
+  dt = p.dparams["dt"];
 
   X0[0] = a; // nodes only along x-axis
 

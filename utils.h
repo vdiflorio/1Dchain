@@ -20,6 +20,9 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
 
 int save_condizioni_iniziali (int num_catene);
 
+void generate_condition(std::vector<double>& cond);
+
+void read_conditions_subset (std::vector<double>& condizioni, int neq);
 
 void compute_mean ( );
 
