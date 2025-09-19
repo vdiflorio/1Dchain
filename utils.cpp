@@ -195,20 +195,24 @@ double dumb_observable (std::vector<double> &Y)
   return flux;
 }
 
-void generate_condition(std::vector<double>& cond) {
-  // esempio semplice: random, o perturbazione di una condizione letta
-  int neq = cond.size();
-  srand48 (time (NULL)); // Initialize the sequence
-  const double perturbation_strength = 1.e-2; // Adjust as needed
-  for (size_t j = 0; j < neq; j++) {
-    cond[j] += perturbation_strength * drand48() - perturbation_strength*0.5; // o qualcos'altro
+void generate_condition(const std::vector<double>& base_cond,
+                        std::vector<double>& new_cond,
+                        int neq) {
+  new_cond.resize(neq);
+
+  const double perturbation_strength = 1.e-2;
+
+  // copia + piccola perturbazione
+  for (int j = 0; j < neq; j++) {
+    new_cond[j] = base_cond[j]
+                  + perturbation_strength * (drand48() - 0.5);
   }
   int step = 1000000;
   double t = 0.0;
   double dt = p.dparams["dt"];
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, cond, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, new_cond, LepriChain, dt,neq); // integration of the function
     t += dt;
   }
 }

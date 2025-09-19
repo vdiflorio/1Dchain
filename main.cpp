@@ -131,8 +131,14 @@ int main (int argc, char** argv)
 
     // Generazione condizioni addizionali con simmetria
     for (int i = 0; i < extra_per_proc; ++i) {
+      // scegli casualmente una condizione base tra quelle già lette
+      int idx = lrand48() % local_conditions_read;
+      const std::vector<double>& base = X_local[idx];
+
+      // genera nuova condizione perturbata
       std::vector<double> cond(neq);
-      generate_condition(cond);
+      generate_condition(base, cond, neq);
+      
       // salva condizione originale
       X_local.push_back(cond);
       // crea e salva la condizione simmetrica
