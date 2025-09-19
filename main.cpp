@@ -68,10 +68,20 @@ int main (int argc, char** argv)
     // Creazione del nome del file con N e Tr
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
 
+    // Numero massimo da leggere dal file
+    const int MAX_FROM_FILE = 500000;
+    // Quante condizioni effettive servono
+    int total_conditions = catene_scelte;
+    // Decidi quante leggere
+    int read_conditions_num = std::min(total_conditions, MAX_FROM_FILE);
 
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
-      read_conditions (X_tot, catene_scelte, neq);
+      if (read_conditions_num >= MAX_FROM_FILE)
+        read_conditions_subset(X_tot, neq);   // legge 500k
+      else
+        read_conditions(X_tot, read_conditions_num, neq); // legge meno
+
       system ("mkdir -p single_data");
       fdata.open (file_name.str(), std::ios::out | std::ios::trunc);
       fdata << std::setiosflags (std::ios::scientific);
@@ -83,22 +93,18 @@ int main (int argc, char** argv)
     }
 
     MPI_Barrier (mpicomm);
-    // Determinare quante condizioni iniziali deve gestire ogni processo
-    int conditiozioni_per_processo = catene_scelte / size;
-    int remainder = catene_scelte % size;
-    std::vector<int> sendcounts (size, conditiozioni_per_processo * neq);
-    std::vector<int> displs (size, 0);
+    // --- Distribuzione delle condizioni lette ---
+    int base_conditions_per_proc = read_conditions_num / size;
+    int remainder = read_conditions_num % size;
+    
+    std::vector<int> sendcounts(size, base_conditions_per_proc * neq);
+    for (int i = 0; i < remainder; ++i) sendcounts[i] += neq;
 
-    for (int i = 0; i < remainder; ++i) {
-      sendcounts[i] += neq;
-    }
+    std::vector<int> displs(size, 0);
+    for (int i = 1; i < size; ++i) displs[i] = displs[i-1] + sendcounts[i-1];
 
-    for (int i = 1; i < size; ++i) {
-      displs[i] = displs[i - 1] + sendcounts[i - 1];
-    }
-
-    int local_conditions = sendcounts[rank] / neq;
-    std::cout << "Rank " << rank << " ha ricevuto " << local_conditions << " catene\n";
+    int local_conditions_read = sendcounts[rank] / neq;
+    std::cout << "Rank " << rank << " ha letto e ricevuto " << local_conditions_read << " catene\n";
 
     // Vettore locale piatto per ciascun processo
     std::vector<double> X_local_flat (sendcounts[rank]);
@@ -113,14 +119,40 @@ int main (int argc, char** argv)
     std::vector<double>().swap (X_tot);
 
     // Riorganizzare i dati ricevuti in `std::vector<std::vector<double>>`
-    std::vector<std::vector<double>> X_local (local_conditions, std::vector<double> (neq));
+    std::vector<std::vector<double>> X_local (local_conditions_read, std::vector<double> (neq));
 
-    for (int i = 0; i < local_conditions; ++i) {
+    for (int i = 0; i < local_conditions_read; ++i) 
       std::copy (X_local_flat.begin() + i * neq, X_local_flat.begin() + (i + 1) * neq, X_local[i].begin());
+    
+    // --- Ora generiamo condizioni extra se necessario ---
+    int extra_needed = (total_conditions - read_conditions_num)/2;
+    int extra_per_proc = extra_needed / size;
+    if (rank < extra_needed % size) extra_per_proc++;
+
+    // Generazione condizioni addizionali con simmetria
+    for (int i = 0; i < extra_per_proc; ++i) {
+      std::vector<double> cond(neq);
+      generate_condition(cond);
+      // salva condizione originale
+      X_local.push_back(cond);
+      // crea e salva la condizione simmetrica
+      std::vector<double> cond_sym(neq);
+      for (int j = 0; j < neq; ++j) {
+        if (j < neq - 2) {
+          cond_sym[j] = (j % 2 != 0 ? -cond[j] : cond[j]);
+        } else {
+          cond_sym[j] = -cond[j];
+        }
+      }
+      X_local.push_back(cond_sym);
     }
 
-    //pulizia del vettore X_local_flat
+    // Ora X_local contiene sia quelle lette che quelle generate
+    std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
+    
+      //pulizia del vettore X_local_flat
     std::vector<double>().swap (X_local_flat);
+
 
 
     std::vector<double> omega_vec (X_local.size());
