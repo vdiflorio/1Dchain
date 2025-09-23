@@ -212,7 +212,7 @@ void generate_condition(const std::vector<double>& base_cond,
   double dt = p.dparams["dt"];
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, new_cond, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, new_cond, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
   }
 }
@@ -223,9 +223,9 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq)
   // Creazione del nome del file dinamico
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
-  int num_condizioni = 500000;
+  int num_condizioni = 20000;
   std::ostringstream name;
-  name << "subset_" << N << ".bin";
+  name << "condition_compressed/subset_" << N << ".bin";
   std::string filename = name.str();
 
   
@@ -284,107 +284,6 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq)
   // Seleziona i primi num_selezioni indici
   std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
-void read_and_save_conditions(std::vector<double>& condizioni, 
-                              int num_condizioni, int neq, 
-                              const std::string& output_filename)
-{
-  // Parametri (ipotizzo che p sia globale come nel tuo codice)
-  int N = p.iparams["N"];
-
-  // Nome del file di input
-  std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
-  std::string filename = name.str();
-
-  // Apertura del file
-  int fd = open(filename.c_str(), O_RDONLY);
-  if (fd == -1) {
-    std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
-    return;
-  }
-
-  // Dimensione del file
-  off_t file_size = lseek(fd, 0, SEEK_END);
-  if (file_size == -1) {
-    std::cerr << "Errore nell'ottenere la dimensione del file!" << std::endl;
-    close(fd);
-    return;
-  }
-
-  // Mappatura in memoria
-  void* file_memory = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
-  if (file_memory == MAP_FAILED) {
-    std::cerr << "Errore nel mappare il file in memoria!" << std::endl;
-    close(fd);
-    return;
-  }
-
-  // Dimensione di una condizione
-  int dimensione_condizione = neq * sizeof(double);
-
-  // Numero di condizioni disponibili
-  int numero_condizioni_tot = file_size / dimensione_condizione;
-
-  if (num_condizioni > numero_condizioni_tot) {
-    std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
-    munmap(file_memory, file_size);
-    close(fd);
-    return;
-  }
-
-  // Prepara il vettore
-  condizioni.resize(num_condizioni * neq);
-
-  // Genera indici casuali
-  std::vector<int64_t> all_indices(numero_condizioni_tot);
-  std::iota(all_indices.begin(), all_indices.end(), 0);
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::shuffle(all_indices.begin(), all_indices.end(), gen);
-
-  // Timer per benchmark
-  auto start_time = std::chrono::high_resolution_clock::now();
-  int read_count = 0;
-
-  // Lettura dei dati
-  for (int i = 0; i < num_condizioni; ++i) {
-    std::streampos offset = all_indices[i] * dimensione_condizione;
-    double* condizione_ptr = reinterpret_cast<double*>(static_cast<char*>(file_memory) + offset);
-
-    std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
-
-    read_count++;
-
-    if (read_count == 100000) {
-      auto current_time = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double> elapsed_time = current_time - start_time;
-      double speed = 100000.0 / elapsed_time.count();
-      std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
-      start_time = current_time;
-      read_count = 0;
-    }
-  }
-
-  // Cleanup memoria
-  munmap(file_memory, file_size);
-  close(fd);
-
-  // Scrittura su file binario di output
-  std::ofstream out(output_filename, std::ios::binary);
-  if (!out) {
-    std::cerr << "Errore nell'apertura del file di output!" << std::endl;
-    return;
-  }
-
-  out.write(reinterpret_cast<const char*>(condizioni.data()), condizioni.size() * sizeof(double));
-  out.close();
-
-  std::cout << "Scritte " << num_condizioni << " condizioni (" 
-            << condizioni.size() << " valori) nel file " 
-            << output_filename << std::endl;
-}
-
 
   // Timer per calcolare la velocità
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -436,6 +335,8 @@ void read_and_save_conditions(std::vector<double>& condizioni,
   munmap (file_memory, file_size);
   close (fd);
 }
+
+
 
 void read_conditions (std::vector<double>& condizioni, int num_condizioni, int neq)
 {
@@ -627,13 +528,13 @@ int save_condizioni_iniziali (int num_catene)
     //EVOLUZIONE SISTEMA
     for (h=1; h<=step - no_step; h++) {
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
     }
 
     for (h=step - no_step; h<=step; h++) {
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
 
       if (drand48()<0.005) {
