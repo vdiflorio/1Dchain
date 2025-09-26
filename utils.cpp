@@ -225,7 +225,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int N = p.iparams["N"];
   int num_condizioni = max_catene;
   std::ostringstream name;
-  name << "subset_" << N << ".bin";
+  name << "condition_compressed/subset_" << N << ".bin";
   std::string filename = name.str();
 
   
