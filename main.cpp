@@ -78,7 +78,7 @@ int main (int argc, char** argv)
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
       if (read_conditions_num >= MAX_FROM_FILE)
-        read_conditions_subset(X_tot, neq);   // legge 500k
+        read_conditions_subset(X_tot, neq, MAX_FROM_FILE);   
       else
         read_conditions(X_tot, read_conditions_num, neq); // legge meno
 

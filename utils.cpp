@@ -212,18 +212,18 @@ void generate_condition(const std::vector<double>& base_cond,
   double dt = p.dparams["dt"];
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, new_cond, AlfaBetaFPUT, dt,neq); // integration of the function
+    RK4Step (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
     t += dt;
   }
 }
 
-void read_conditions_subset (std::vector<double>& condizioni, int neq)
+void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene)
 {
   // Apri il file binario
   // Creazione del nome del file dinamico
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
-  int num_condizioni = 500000;
+  int num_condizioni = max_catene;
   std::ostringstream name;
   name << "subset_" << N << ".bin";
   std::string filename = name.str();

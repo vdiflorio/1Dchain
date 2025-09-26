@@ -24,7 +24,7 @@ void generate_condition(const std::vector<double>& base_cond,
                         std::vector<double>& new_cond,
                         int neq);
 
-void read_conditions_subset (std::vector<double>& condizioni, int neq);
+void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene);
 
 void compute_mean ( );
 
