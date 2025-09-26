@@ -212,7 +212,7 @@ void generate_condition(const std::vector<double>& base_cond,
   double dt = p.dparams["dt"];
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, new_cond, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, new_cond, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
   }
 }
@@ -526,13 +526,13 @@ int save_condizioni_iniziali (int num_catene)
     //EVOLUZIONE SISTEMA
     for (h=1; h<=step - no_step; h++) {
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
     }
 
     for (h=step - no_step; h<=step; h++) {
       //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
 
       if (drand48()<0.005) {
@@ -660,7 +660,7 @@ void compute_mean ()
   //EVOLUZIONE SISTEMA
   for (h=1; h<=step - no_step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
     ni = k*int(N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
@@ -674,7 +674,7 @@ void compute_mean ()
 
   for (h=step - no_step; h<=step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, LepriChain, dt,neq); // integration of the function
+    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
 
     ni = k*int(N*0.5);
