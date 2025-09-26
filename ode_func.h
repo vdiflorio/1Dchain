@@ -13,6 +13,8 @@ void betaFPUT (double t, std::vector<double> &Y, std::vector<double> &R); //real
 
 void LJ (double t, std::vector<double> &Y, std::vector<double> &R);
 
+void AlfaBetaFPUT_initial (double t, std::vector<double> &Y, std::vector<double> &R);
+
 void AlfaBetaFPUT (double t, std::vector<double> &Y, std::vector<double> &R);
 
 void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R);
