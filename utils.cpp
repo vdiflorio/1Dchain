@@ -228,6 +228,8 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   name << "condition_compressed/subset_" << N << ".bin";
   std::string filename = name.str();
 
+  std::cout << "Leggo da file: " << filename << std::endl;
+
   
 
   // Apertura del file con il nome dinamico
@@ -258,7 +260,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int dimensione_condizione = neq * sizeof (double);
 
   // Calcola il numero di condizioni nel file
-  int numero_condizioni_tot = file_size / dimensione_condizione;
+  int numero_condizioni_tot = file_size / dimensione_condizione*2;
 
   if (num_condizioni > numero_condizioni_tot) {
     std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
