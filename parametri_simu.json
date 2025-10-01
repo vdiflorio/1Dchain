@@ -1,6 +1,6 @@
 {
     "dparams": {
-        "dt": 0.01,
+        "dt": 0.001,
         "Tl": 1.0,
         "Tr": 1.003,
         "a": 1.0,
@@ -15,8 +15,8 @@
         "N": 30,
         "dim": 1,
         "step": 50,
-        "catene_CI": 1000000,
-        "catene_scelte": 1000000
+        "catene_CI": 1,
+        "catene_scelte": 500002
     },
     "sparams": {
         "dir_CI": "",

@@ -225,12 +225,10 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int N = p.iparams["N"];
   int num_condizioni = max_catene;
   std::ostringstream name;
-  name << "condition_compressed/subset_" << N << ".bin";
+  name << "subset_" << N << ".bin";
   std::string filename = name.str();
 
   std::cout << "Leggo da file: " << filename << std::endl;
-
-  
 
   // Apertura del file con il nome dinamico
   int fd = open (filename.c_str(), O_RDONLY);
@@ -260,7 +258,8 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int dimensione_condizione = neq * sizeof (double);
 
   // Calcola il numero di condizioni nel file
-  int numero_condizioni_tot = file_size / dimensione_condizione*2;
+  int numero_condizioni_tot = file_size / dimensione_condizione * 2; // *2 per la simmetria
+  std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
 
   if (num_condizioni > numero_condizioni_tot) {
     std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
@@ -275,14 +274,14 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
 
   // Genera un vettore con tutti gli indici
-  std::vector<int64_t> all_indices (num_condizioni);
+  std::vector<int64_t> all_indices (num_condizioni/2);
   std::iota (all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
 
   // Mescola il vettore
   std::random_device rd;
   std::mt19937 gen (rd());
   std::shuffle (all_indices.begin(), all_indices.end(), gen);
-
+    
   // Seleziona i primi num_selezioni indici
   std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
@@ -290,6 +289,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   // Timer per calcolare la velocità
   auto start_time = std::chrono::high_resolution_clock::now();
   int read_count = 0;
+  
 
   // Lettura dei dati
   for (int i = 0; i < num_condizioni/2; ++i) {
@@ -299,22 +299,8 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
     // Leggere direttamente dalla memoria mappata
     double* condizione_ptr = reinterpret_cast<double*> (static_cast<char*> (file_memory) + offset);
     std::copy (condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
-
     read_count++;
-
-    // Ogni 1000 letture, calcola e stampa la velocità
-    if (read_count == 100000) {
-      auto current_time = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double> elapsed_time = current_time - start_time;
-      double speed = 100000.0 / elapsed_time.count(); // letture al secondo
-      std::cout << "Velocità di lettura: " << speed << " condizioni/secondo" << std::endl;
-
-      // Reset del timer per il prossimo intervallo di 1000 letture
-      start_time = current_time;
-
-    }
   }
-
   // // Modifica delle condizioni per il secondo ciclo
   for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
     for (int j = 0; j < neq; ++j) {

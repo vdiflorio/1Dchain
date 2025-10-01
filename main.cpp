@@ -82,7 +82,8 @@ int main (int argc, char** argv)
       else
         read_conditions(X_tot, read_conditions_num, neq); // legge meno
 
-      system ("mkdir -p single_data");
+      std::string cmd = "mkdir -p \"" + p.sparams["dir"] + "\"";    // metti tra virgolette per spazi
+      std::system (cmd.c_str());
       fdata.open (file_name.str(), std::ios::out | std::ios::trunc);
       fdata << std::setiosflags (std::ios::scientific);
       fdata << std::setprecision (4);
@@ -159,8 +160,6 @@ int main (int argc, char** argv)
       //pulizia del vettore X_local_flat
     std::vector<double>().swap (X_local_flat);
 
-
-
     std::vector<double> omega_vec (X_local.size());
     double ttcf_mean = 0;
     double ttcf_mean_prev = 0;
@@ -180,7 +179,6 @@ int main (int argc, char** argv)
       omega_mean += omega_vec[i];
     }
 
-
     MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
     MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
     MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &obs_mean_prev, &obs_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
@@ -192,7 +190,6 @@ int main (int argc, char** argv)
       std::cout << "Media della omega: " << omega_mean << std::endl;
       std::cout << "Media osservabile: " << obs_mean_prev << std::endl;
     }
-
 
     // Evolvere le condizioni iniziali
     double t = 0.0;
