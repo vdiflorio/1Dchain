@@ -20,9 +20,9 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
 
 int save_condizioni_iniziali (int num_catene);
 
-void generate_condition(const std::vector<double>& base_cond,
-                        std::vector<double>& new_cond,
-                        int neq);
+void generate_condition (const std::vector<double>& base_cond,
+                         std::vector<double>& new_cond,
+                         int neq);
 
 void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene);
 

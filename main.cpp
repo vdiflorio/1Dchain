@@ -73,16 +73,17 @@ int main (int argc, char** argv)
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
-    int read_conditions_num = std::min(total_conditions, MAX_FROM_FILE);
+    int read_conditions_num = std::min (total_conditions, MAX_FROM_FILE);
 
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
-      if (read_conditions_num >= MAX_FROM_FILE)
-        read_conditions_subset(X_tot, neq, MAX_FROM_FILE);   
-      else
-        read_conditions(X_tot, read_conditions_num, neq); // legge meno
 
-      std::string cmd = "mkdir -p \"" + p.sparams["dir"] + "\"";    // metti tra virgolette per spazi
+      if (read_conditions_num >= MAX_FROM_FILE)
+        read_conditions_subset (X_tot, neq, MAX_FROM_FILE);
+      else
+        read_conditions (X_tot, read_conditions_num, neq); // legge meno
+
+      std::string cmd = "mkdir -p \"" + p.sparams["dir"] + "\""; // metti tra virgolette per spazi
       std::system (cmd.c_str());
       fdata.open (file_name.str(), std::ios::out | std::ios::trunc);
       fdata << std::setiosflags (std::ios::scientific);
@@ -97,11 +98,13 @@ int main (int argc, char** argv)
     // --- Distribuzione delle condizioni lette ---
     int base_conditions_per_proc = read_conditions_num / size;
     int remainder = read_conditions_num % size;
-    
-    std::vector<int> sendcounts(size, base_conditions_per_proc * neq);
+
+    std::vector<int> sendcounts (size, base_conditions_per_proc * neq);
+
     for (int i = 0; i < remainder; ++i) sendcounts[i] += neq;
 
-    std::vector<int> displs(size, 0);
+    std::vector<int> displs (size, 0);
+
     for (int i = 1; i < size; ++i) displs[i] = displs[i-1] + sendcounts[i-1];
 
     int local_conditions_read = sendcounts[rank] / neq;
@@ -122,12 +125,13 @@ int main (int argc, char** argv)
     // Riorganizzare i dati ricevuti in `std::vector<std::vector<double>>`
     std::vector<std::vector<double>> X_local (local_conditions_read, std::vector<double> (neq));
 
-    for (int i = 0; i < local_conditions_read; ++i) 
+    for (int i = 0; i < local_conditions_read; ++i)
       std::copy (X_local_flat.begin() + i * neq, X_local_flat.begin() + (i + 1) * neq, X_local[i].begin());
-    
+
     // --- Ora generiamo condizioni extra se necessario ---
     int extra_needed = (total_conditions - read_conditions_num)/2;
     int extra_per_proc = extra_needed / size;
+
     if (rank < extra_needed % size) extra_per_proc++;
 
     // Generazione condizioni addizionali con simmetria
@@ -137,13 +141,14 @@ int main (int argc, char** argv)
       const std::vector<double>& base = X_local[idx];
 
       // genera nuova condizione perturbata
-      std::vector<double> cond(neq);
-      generate_condition(base, cond, neq);
-      
+      std::vector<double> cond (neq);
+      generate_condition (base, cond, neq);
+
       // salva condizione originale
-      X_local.push_back(cond);
+      X_local.push_back (cond);
       // crea e salva la condizione simmetrica
-      std::vector<double> cond_sym(neq);
+      std::vector<double> cond_sym (neq);
+
       for (int j = 0; j < neq; ++j) {
         if (j < neq - 2) {
           cond_sym[j] = (j % 2 != 0 ? -cond[j] : cond[j]);
@@ -151,13 +156,14 @@ int main (int argc, char** argv)
           cond_sym[j] = -cond[j];
         }
       }
-      X_local.push_back(cond_sym);
+
+      X_local.push_back (cond_sym);
     }
 
     // Ora X_local contiene sia quelle lette che quelle generate
     std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
-    
-      //pulizia del vettore X_local_flat
+
+    //pulizia del vettore X_local_flat
     std::vector<double>().swap (X_local_flat);
 
     std::vector<double> omega_vec (X_local.size());

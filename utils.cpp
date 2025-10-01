@@ -195,10 +195,11 @@ double dumb_observable (std::vector<double> &Y)
   return flux;
 }
 
-void generate_condition(const std::vector<double>& base_cond,
-                        std::vector<double>& new_cond,
-                        int neq) {
-  new_cond.resize(neq);
+void generate_condition (const std::vector<double>& base_cond,
+                         std::vector<double>& new_cond,
+                         int neq)
+{
+  new_cond.resize (neq);
 
   const double perturbation_strength = 1.e-2;
 
@@ -207,9 +208,11 @@ void generate_condition(const std::vector<double>& base_cond,
     new_cond[j] = base_cond[j]
                   + perturbation_strength * (drand48() - 0.5);
   }
+
   int step = 1000000;
   double t = 0.0;
   double dt = p.dparams["dt"];
+
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
     RK4Step (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
@@ -281,7 +284,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   std::random_device rd;
   std::mt19937 gen (rd());
   std::shuffle (all_indices.begin(), all_indices.end(), gen);
-    
+
   // Seleziona i primi num_selezioni indici
   std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
@@ -289,7 +292,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   // Timer per calcolare la velocità
   auto start_time = std::chrono::high_resolution_clock::now();
   int read_count = 0;
-  
+
 
   // Lettura dei dati
   for (int i = 0; i < num_condizioni/2; ++i) {
@@ -301,6 +304,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
     std::copy (condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
     read_count++;
   }
+
   // // Modifica delle condizioni per il secondo ciclo
   for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
     for (int j = 0; j < neq; ++j) {
@@ -335,7 +339,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   name << "condizioni_" << N << ".bin";
   std::string filename = name.str();
 
-  
+
 
   // Apertura del file con il nome dinamico
   int fd = open (filename.c_str(), O_RDONLY);
@@ -609,7 +613,7 @@ void compute_mean ()
   std::vector<double> cum_mean (N-bd_paticle*2);
   std::vector<double> Temperature (N);
 
-  
+
 
   // INIZILIZZAZIONE VETTORI
   for (i=0; i < neq; i++) {
@@ -645,17 +649,19 @@ void compute_mean ()
   std::vector<double> vect_conv;
   double cum_mean_tmp=0.0;
   int ni;
+
   //EVOLUZIONE SISTEMA
   for (h=1; h<=step - no_step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
     RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
-    ni = k*int(N*0.5);
+    ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
     cum_mean_tmp += (chi* (r1) +
-                    Alpha* (r1*r1) +
-                    bet* (r1*r1*r1))*X[ni+dim]/m;
-    if (h%n_conv == 0){
+                     Alpha* (r1*r1) +
+                     bet* (r1*r1*r1))*X[ni+dim]/m;
+
+    if (h%n_conv == 0) {
       vect_conv.push_back (cum_mean_tmp/h);
     }
   }
@@ -665,15 +671,16 @@ void compute_mean ()
     RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
 
-    ni = k*int(N*0.5);
+    ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
     cum_mean_tmp += (chi* (r1) +
-                    Alpha* (r1*r1) +
-                    bet* (r1*r1*r1))*X[ni+dim]/m;
-    if (h%n_conv == 0){
+                     Alpha* (r1*r1) +
+                     bet* (r1*r1*r1))*X[ni+dim]/m;
+
+    if (h%n_conv == 0) {
       vect_conv.push_back (cum_mean_tmp/h);
     }
-    
+
     for (i = bd_paticle; i < N-bd_paticle; i++) {
       n = k*i;
       r1 = (X[n+k] - X[n] - a);
@@ -681,12 +688,13 @@ void compute_mean ()
                                 Alpha* (r1*r1) +
                                 bet* (r1*r1*r1))*X[n+dim]/m;
     }
+
     for (i = 1; i <= N; i++) {
       n = k*i;
       Temperature[i-1]+= X[n+dim]*X[n+dim]/m;
     }
   }
-  
+
 
   std::ostringstream filename;
 
@@ -698,9 +706,11 @@ void compute_mean ()
     for (i = 0; i < N-bd_paticle*2; i++) {
       outfile << "Ergodic mean: " << cum_mean[i]/no_step << std::endl;
     }
+
     outfile <<std::endl;
     outfile << "@@"<<std::endl;
     outfile <<std::endl;
+
     for (i = 0; i < N; i++) {
       outfile << "Temperature: " << Temperature[i]/no_step << std::endl;
     }
@@ -708,9 +718,9 @@ void compute_mean ()
     std::cerr << "Error opening file: " << filename.str() << std::endl;
   }
 
-  if (outfile_conv.is_open ()){
+  if (outfile_conv.is_open ()) {
     for (i = 0; i <vect_conv.size (); i++) {
-      outfile_conv << n_conv*(i+1) << "  " << vect_conv[i] << std::endl;
+      outfile_conv << n_conv* (i+1) << "  " << vect_conv[i] << std::endl;
     }
   } else {
     std::cerr << "Error opening file: " << convergence_mean.str() << std::endl;
