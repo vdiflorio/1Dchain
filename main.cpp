@@ -69,7 +69,7 @@ int main (int argc, char** argv)
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
 
     // Numero massimo da leggere dal file
-    const int MAX_FROM_FILE = 20000;
+    const int MAX_FROM_FILE = 500000;
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
@@ -78,10 +78,7 @@ int main (int argc, char** argv)
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
       if (read_conditions_num >= MAX_FROM_FILE)
-        read_conditions_subset(X_tot, neq);   // legge 500k
-
-
-
+        read_conditions_subset(X_tot, neq, MAX_FROM_FILE);   
       else
         read_conditions(X_tot, read_conditions_num, neq); // legge meno
 
@@ -154,29 +151,11 @@ int main (int argc, char** argv)
         }
       }
       X_local.push_back(cond_sym);
-
     }
-    
-    
 
     // Ora X_local contiene sia quelle lette che quelle generate
     std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
     
-
-    {
-      std::ostringstream fname;
-      fname << "test_generation/" << rank << ".txt";
-      std::ofstream fout(fname.str());
-      for (const auto& cond : X_local) {
-        for (size_t j = 0; j < cond.size(); ++j) {
-          fout << cond[j];
-          if (j + 1 < cond.size()) fout << " ";
-        }
-        fout << "\n";
-      }
-      fout.close();
-    }
-
       //pulizia del vettore X_local_flat
     std::vector<double>().swap (X_local_flat);
 

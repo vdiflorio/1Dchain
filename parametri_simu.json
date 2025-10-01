@@ -2,7 +2,7 @@
     "dparams": {
         "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 1.0,
+        "Tr": 1.003,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -14,13 +14,13 @@
     "iparams": {
         "N": 30,
         "dim": 1,
-        "step": 1,
-        "catene_CI": 40000,
-        "catene_scelte": 40000
+        "step": 50,
+        "catene_CI": 1000000,
+        "catene_scelte": 1000000
     },
     "sparams": {
         "dir_CI": "",
-        "dir": "dt_long_long"
+        "dir": "test_generation"
     },
     "bparams": {
         "save_conditions": false,

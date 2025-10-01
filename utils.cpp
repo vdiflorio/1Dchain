@@ -212,21 +212,23 @@ void generate_condition(const std::vector<double>& base_cond,
   double dt = p.dparams["dt"];
   for (int h=1; h<= step; h++) {
     // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, new_cond, AlfaBetaFPUT, dt,neq); // integration of the function
+    RK4Step (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
     t += dt;
   }
 }
 
-void read_conditions_subset (std::vector<double>& condizioni, int neq)
+void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene)
 {
   // Apri il file binario
   // Creazione del nome del file dinamico
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
-  int num_condizioni = 20000;
+  int num_condizioni = max_catene;
   std::ostringstream name;
   name << "condition_compressed/subset_" << N << ".bin";
   std::string filename = name.str();
+
+  std::cout << "Leggo da file: " << filename << std::endl;
 
   
 
@@ -258,7 +260,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq)
   int dimensione_condizione = neq * sizeof (double);
 
   // Calcola il numero di condizioni nel file
-  int numero_condizioni_tot = file_size / dimensione_condizione;
+  int numero_condizioni_tot = file_size / dimensione_condizione*2;
 
   if (num_condizioni > numero_condizioni_tot) {
     std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
@@ -335,8 +337,6 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq)
   munmap (file_memory, file_size);
   close (fd);
 }
-
-
 
 void read_conditions (std::vector<double>& condizioni, int num_condizioni, int neq)
 {
