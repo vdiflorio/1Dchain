@@ -209,7 +209,7 @@ void generate_condition (const std::vector<double>& base_cond,
                   + perturbation_strength * (drand48() - 0.5);
   }
 
-  int step = 1000000;
+  int step = 50000;
   double t = 0.0;
   double dt = p.dparams["dt"];
 
@@ -228,7 +228,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int N = p.iparams["N"];
   int num_condizioni = max_catene;
   std::ostringstream name;
-  name << "subset_" << N << ".bin";
+  name << "../condizioni_" << N << ".bin";
   std::string filename = name.str();
 
   std::cout << "Leggo da file: " << filename << std::endl;
@@ -336,7 +336,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
+  name << "../condizioni_" << N << ".bin";
   std::string filename = name.str();
 
 

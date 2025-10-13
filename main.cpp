@@ -69,19 +69,24 @@ int main (int argc, char** argv)
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
 
     // Numero massimo da leggere dal file
-    const int MAX_FROM_FILE = 500000;
+    const int MAX_FROM_FILE = 8000000;
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
     int read_conditions_num = std::min (total_conditions, MAX_FROM_FILE);
-
+    double start_time_bis = MPI_Wtime();
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
-
+      
+      
       if (read_conditions_num >= MAX_FROM_FILE)
         read_conditions_subset (X_tot, neq, MAX_FROM_FILE);
       else
         read_conditions (X_tot, read_conditions_num, neq); // legge meno
+
+      
+
+
 
       std::string cmd = "mkdir -p \"" + p.sparams["dir"] + "\""; // metti tra virgolette per spazi
       std::system (cmd.c_str());
@@ -159,9 +164,13 @@ int main (int argc, char** argv)
 
       X_local.push_back (cond_sym);
     }
+    
+    double end_time_bis = MPI_Wtime(); // end timer for ETA calculation
 
+    if (rank == 0)
+      std::cout <<"\nTotal generation time: " << end_time_bis - start_time_bis << std::endl;
     // Ora X_local contiene sia quelle lette che quelle generate
-    std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
+    //std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
 
     //pulizia del vettore X_local_flat
     std::vector<double>().swap (X_local_flat);
@@ -230,9 +239,9 @@ int main (int argc, char** argv)
       if (rank == 0) {
         ttcf_mean = ttcf_mean/catene_scelte;
         // // integrare sul tempo trapezi int_a^b (f(a)+ f(b))*(b-a)*0.5
-        ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
+        // ttcf_mean_integral += (ttcf_mean + ttcf_mean_prev)*dt*0.5;
         std::ostringstream oss;
-        oss << ttcf_mean << " " << ttcf_mean_integral << std::endl;
+        oss << ttcf_mean << std::endl;
         buffer.push_back (oss.str());
 
         // Quando il buffer è pieno, scrivi tutto sul file
