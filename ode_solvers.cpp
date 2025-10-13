@@ -51,6 +51,45 @@ void RK2Step (double t, std::vector<double> &Y,
   }
 }
 
+void RK4Step_fast(double t, std::vector<double> &Y,
+              std::function<void (double, std::vector<double> &, std::vector<double> &)> dYdt,
+              double dt, int neq)
+{
+    static std::vector<double> k1, k2, k3, k4, Ytemp;
+
+    // Allocazione solo la prima volta
+    //if (k1.size() != static_cast<size_t>(neq)) {
+        k1.resize(neq);
+        k2.resize(neq);
+        k3.resize(neq);
+        k4.resize(neq);
+        Ytemp.resize(neq);
+    //}
+
+    // k1 = f(t, Y)
+    dYdt(t, Y, k1);
+
+    
+
+    // k2 = f(t + dt/2, Y + dt/2*k1)
+    for (int i = 0; i < neq; i++)
+        Ytemp[i] = Y[i] + 0.5 * dt * k1[i];
+    dYdt(t + 0.5 * dt, Ytemp, k2);
+
+    // k3 = f(t + dt/2, Y + dt/2*k2)
+    for (int i = 0; i < neq; i++)
+        Ytemp[i] = Y[i] + 0.5 * dt * k2[i];
+    dYdt(t + 0.5 * dt, Ytemp, k3);
+
+    // k4 = f(t + dt, Y + dt*k3)
+    for (int i = 0; i < neq; i++)
+        Ytemp[i] = Y[i] + dt * k3[i];
+    dYdt(t + dt, Ytemp, k4);
+
+    // Aggiornamento finale
+    for (int i = 0; i < neq; i++)
+        Y[i] += (dt / 6.0) * (k1[i] + 2.0 * (k2[i] + k3[i]) + k4[i]);
+}
 
 
 void RK4Step (double t, std::vector<double> &Y,

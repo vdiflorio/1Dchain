@@ -214,10 +214,104 @@ void generate_condition (const std::vector<double>& base_cond,
   double dt = p.dparams["dt"];
 
   for (int h=1; h<= step; h++) {
-    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step_fast (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
     t += dt;
   }
+}
+
+void timing_RK (int neq)
+{
+
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+
+  double m = p.dparams["m"];
+  double a = p.dparams["a"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
+  
+  
+  
+    std::vector<double> new_cond(neq);
+    std::vector<double> new_cond_fast(neq);
+  
+  double X0[dim]; //unità di spaziatura
+  double X_eq[dim* (N+2)]; //vettore contenete posizioni di equilibrio meccanico (potrebbe essere cancellato)
+  int k,n,l;
+
+  k = 2;
+  
+  //dt = 1.e-2; //intervallo di integrazione
+  
+
+  X0[0] = a; // nodes only along x-axis
+
+  // Nodes position at mechanical equilibrium (potrebbe non essere utile per il codice)
+  for (int j=0; j<=N+1; j++) {
+    l = dim*j;
+
+    for (int i=0; i<dim; i++) {
+      X_eq[l+i] = j*X0[i];
+    }
+  }
+
+
+  // INIZILIZZAZIONE VETTORI
+  for (int i=0; i < neq; i++) {
+    new_cond[i] = 0.0;
+    new_cond_fast[i] = 0.0;
+  }
+
+  new_cond[k* (N+2)] = 1.0; //inizializzazione termostato di sinistra
+  new_cond[k* (N+2)+1] = 1.0; //inizializzazione termostato di destra
+  new_cond_fast[k* (N+2)] = 1.0; //inizializzazione termostato di sinistra
+  new_cond_fast[k* (N+2)+1] = 1.0; //inizializzazione termostato di destra
+  ////////////////////////////////////////////////////////////////
+
+  double alfa = 1.0; // fattore di stretching
+
+  
+
+  for (int j= 1; j<=N; j++) {
+    n=k*j;
+    l=dim*j;
+
+    for (int i= 0; i<dim; ++i) {
+      new_cond[n+i]= X_eq[l+i]*alfa - 0.4; //posizione
+      new_cond[n+i+dim]=  0.5; //velocità
+      new_cond_fast[n+i]= X_eq[l+i]*alfa - 0.4; //posizione
+      new_cond_fast[n+i+dim]=  0.5; //velocità
+    }
+  }
+
+  new_cond[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
+  new_cond_fast[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
+
+
+  int step = 500000;
+  double t = 0.0;
+  double dt = p.dparams["dt"];
+  auto start_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
+  for (int h=1; h<= step; h++) {
+    // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step_fast (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    t += dt;
+  }
+  auto end_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
+  auto start_time_fast = std::chrono::steady_clock::now();; // Start timer for ETA calculation
+  for (int h=1; h<= step; h++) {
+    // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step_fast (t, new_cond_fast, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    t += dt;
+  }
+auto end_time_fast = std::chrono::steady_clock::now(); // Start timer for ETA calculation
+std::cout<<std::chrono::duration<double>(end_time - start_time).count()<< " "<<
+                    std::chrono::duration<double>(end_time_fast - start_time_fast).count()<<std::endl;
+
+std::cout<<new_cond[5]<<std::endl;
+std::cout<<new_cond_fast[5]<<std::endl;
 }
 
 void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene)
@@ -517,14 +611,14 @@ int save_condizioni_iniziali (int num_catene)
 
     //EVOLUZIONE SISTEMA
     for (h=1; h<=step - no_step; h++) {
-      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+      //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
     }
 
     for (h=step - no_step; h<=step; h++) {
-      //RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+      //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+      RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
       t += dt;
 
       if (drand48()<0.005) {
@@ -652,8 +746,8 @@ void compute_mean ()
 
   //EVOLUZIONE SISTEMA
   for (h=1; h<=step - no_step; h++) {
-    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+    // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
@@ -667,8 +761,8 @@ void compute_mean ()
   }
 
   for (h=step - no_step; h<=step; h++) {
-    // RK4Step(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+    // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
+    RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
     t += dt;
 
     ni = k*int (N*0.5);

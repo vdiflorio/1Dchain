@@ -20,6 +20,10 @@ void RK4Step (double t, std::vector<double> &Y,
               std::function<void (double, std::vector<double> &, std::vector<double> &)> dYdt,
               double dt, int neq);
 
+void RK4Step_fast(double t, std::vector<double> &Y,
+              std::function<void (double, std::vector<double> &, std::vector<double> &)> dYdt,
+              double dt, int neq);
+
 void RK5Step (double t, std::vector<double> &Y,
               std::function<void (double, std::vector<double> &, std::vector<double> &)> dYdt,
               double dt, int neq);

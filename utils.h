@@ -28,4 +28,6 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
 
 void compute_mean ( );
 
+void timing_RK (int neq);
+
 #endif

@@ -58,6 +58,7 @@ int main (int argc, char** argv)
 
   if (rank == 0 && time_average) {
     std::cout << "\nTime average ";
+    //timing_RK (neq);
     compute_mean ();
   }
 
@@ -228,8 +229,8 @@ int main (int argc, char** argv)
       ttcf_mean = 0;
 
       for (int i = 0; i < X_local.size(); ++i) {
-        //RK4Step(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
-        RK4Step (t, X_local[i], AlfaBetaFPUT, dt,neq); // integration of the function
+        //RK4Step_fast(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
+        RK4Step_fast (t, X_local[i], AlfaBetaFPUT, dt,neq); // integration of the function
         t_vec[i] += dt;
         ttcf_mean += TTCF (observable_bulk, omega_vec[i],X_local[i], T_init);
       }
