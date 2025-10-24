@@ -209,7 +209,7 @@ void generate_condition (const std::vector<double>& base_cond,
                   + perturbation_strength * (drand48() - 0.5);
   }
 
-  int step = 50000;
+  int step = 1;
   double t = 0.0;
   double dt = p.dparams["dt"];
 
@@ -314,7 +314,7 @@ std::cout<<new_cond[5]<<std::endl;
 std::cout<<new_cond_fast[5]<<std::endl;
 }
 
-void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene)
+void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene, int job_id)
 {
   // Apri il file binario
   // Creazione del nome del file dinamico
@@ -325,8 +325,9 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   name << "../condizioni_" << N << ".bin";
   std::string filename = name.str();
 
-  std::cout << "Leggo da file: " << filename << std::endl;
+  std::cout << "Leggo da file con subset: " << filename << std::endl;
 
+  std::cout << "Job ID: " << job_id << std::endl;
   // Apertura del file con il nome dinamico
   int fd = open (filename.c_str(), O_RDONLY);
 
@@ -366,21 +367,28 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   }
 
   // Prepara il vettore per le condizioni
-  condizioni.reserve (num_condizioni * neq);
+  int64_t total_elements = static_cast<int64_t>(num_condizioni) * static_cast<int64_t>(neq);
+  std::cout << "num_condizioni: " << num_condizioni
+          << ", neq: " << neq
+          << ", total elements: " << total_elements << std::endl;
+  double total_gb = total_elements * sizeof(double) / 1e9;
+  std::cout << "Total memory needed: " << total_gb << " GB" << std::endl;
+  condizioni.resize (total_elements);
 
-  int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
+  int64_t num_selezioni = num_condizioni / 2;  // number of indices per job (your chunk size)
 
-  // Genera un vettore con tutti gli indici
-  std::vector<int64_t> all_indices (num_condizioni/2);
-  std::iota (all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
+// Generate all indices once
+std::vector<int64_t> all_indices(num_condizioni / 2);
+std::iota(all_indices.begin(), all_indices.end(), 0);
 
-  // Mescola il vettore
-  std::random_device rd;
-  std::mt19937 gen (rd());
-  std::shuffle (all_indices.begin(), all_indices.end(), gen);
 
-  // Seleziona i primi num_selezioni indici
-  std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
+
+// Compute start and end for this job
+int64_t start = job_id * num_selezioni;
+int64_t end = std::min(start + num_selezioni, (int64_t)all_indices.size());
+
+// Extract this job’s disjoint indices
+std::vector<int64_t> indices(all_indices.begin() + start, all_indices.begin() + end);
 
 
   // Timer per calcolare la velocità
@@ -389,33 +397,47 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
 
 
   // Lettura dei dati
-  for (int i = 0; i < num_condizioni/2; ++i) {
+for (int64_t i = 0; i < static_cast<int64_t>(num_condizioni)/2; ++i) {
     // Calcolare l'offset per l'indice casuale
-    std::streampos offset = indices[i] * dimensione_condizione;
+    int64_t offset = indices[i] * static_cast<int64_t>(dimensione_condizione);
+
+    // Controllo per non leggere oltre la memoria mappata
+    if (offset + static_cast<int64_t>(neq) * sizeof(double) > file_size) {
+        std::cerr << "Attempting to read past end of file at index " << i << std::endl;
+        break;
+    }
 
     // Leggere direttamente dalla memoria mappata
-    double* condizione_ptr = reinterpret_cast<double*> (static_cast<char*> (file_memory) + offset);
-    std::copy (condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
-    read_count++;
-  }
+    double* condizione_ptr = reinterpret_cast<double*>(
+        static_cast<char*>(file_memory) + offset
+    );
 
-  // // Modifica delle condizioni per il secondo ciclo
-  for (int k = num_condizioni / 2; k < num_condizioni; ++k) {
-    for (int j = 0; j < neq; ++j) {
-      if (j < neq - 2) {
-        // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
-        if (j % 2 != 0) {
-          condizioni[k * neq + j] = -condizioni[ (k - num_condizioni / 2) * neq + j];
+    std::copy(
+        condizione_ptr, 
+        condizione_ptr + neq, 
+        condizioni.begin() + i * static_cast<int64_t>(neq)
+    );
+
+    read_count++;
+}
+
+// Modifica delle condizioni per il secondo ciclo
+for (int64_t k = static_cast<int64_t>(num_condizioni) / 2; k < static_cast<int64_t>(num_condizioni); ++k) {
+    for (int64_t j = 0; j < static_cast<int64_t>(neq); ++j) {
+        int64_t src_idx = (k - static_cast<int64_t>(num_condizioni) / 2) * static_cast<int64_t>(neq) + j;
+        int64_t dst_idx = k * static_cast<int64_t>(neq) + j;
+
+        if (j < static_cast<int64_t>(neq) - 2) {
+            if (j % 2 != 0) {
+                condizioni[dst_idx] = -condizioni[src_idx];
+            } else {
+                condizioni[dst_idx] = condizioni[src_idx];
+            }
         } else {
-          // Per i componenti pari, copia semplicemente
-          condizioni[k * neq + j] = condizioni[ (k - num_condizioni / 2) * neq + j];
+            condizioni[dst_idx] = -condizioni[src_idx];
         }
-      } else {
-        // Per gli ultimi due componenti, moltiplica per -1
-        condizioni[k * neq + j] = -condizioni[ (k - num_condizioni / 2) * neq + j];
-      }
     }
-  }
+}
 
   // Libera la memoria mappata e chiudi il file
   munmap (file_memory, file_size);

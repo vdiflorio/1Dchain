@@ -1,42 +1,51 @@
 import json
 import sys
 
-# Controllo degli argomenti
-if len(sys.argv) != 4:
-    print("Uso: python3 modify_n_tr.py <file_json> <nuovo_N> <nuovo_grad>")
+# Check arguments
+if len(sys.argv) != 5:
+    print("Usage: python3 modify_n_tr.py <file_json> <nuovo_N> <nuovo_grad> <job_id>")
     sys.exit(1)
 
 file_path = sys.argv[1]
 new_n = int(sys.argv[2])
 new_grad = float(sys.argv[3])
-new_tr = 1 + new_grad*new_n
+job_id = int(sys.argv[4])
+new_tr = 1 + new_grad * new_n
 
-# Funzione per modificare `N` e `Tr`
-def modify_n_and_tr(file_path, new_n, new_tr):
+# Function to modify `N`, `Tr` and `job_id`
+def modify_n_tr_job(file_path, new_n, new_tr, job_id):
     try:
-        # Leggere il file JSON esistente
+        # Read existing JSON
         with open(file_path, "r") as f:
             data = json.load(f)
 
-        # Modificare i valori di `N` e `Tr`
+        # Modify N
         if "iparams" in data and "N" in data["iparams"]:
             data["iparams"]["N"] = new_n
         else:
-            print("Parametro 'N' non trovato in 'iparams'.")
+            print("Parameter 'N' not found in 'iparams'.")
 
+        # Modify Tr
         if "dparams" in data and "Tr" in data["dparams"]:
             data["dparams"]["Tr"] = new_tr
         else:
-            print("Parametro 'Tr' non trovato in 'dparams'.")
+            print("Parameter 'Tr' not found in 'dparams'.")
 
-        # Salvare il file JSON aggiornato
+        # Modify job_id
+        if "iparams" in data:
+            data["iparams"]["job_id"] = job_id
+        else:
+            print("Parameter 'job_id' not found in 'iparams'.")
+
+        # Save updated JSON
         with open(file_path, "w") as f:
             json.dump(data, f, indent=4)
-        print(f"File JSON modificato correttamente: N = {new_n}, Tr = {new_tr}")
+
+        print(f"JSON updated successfully: N = {new_n}, Tr = {new_tr}, job_id = {job_id}")
 
     except Exception as e:
-        print(f"Errore durante la modifica del file JSON: {e}")
+        print(f"Error modifying JSON file: {e}")
         sys.exit(1)
 
-# Eseguire la modifica
-modify_n_and_tr(file_path, new_n, new_tr)
+# Execute modification
+modify_n_tr_job(file_path, new_n, new_tr, job_id)

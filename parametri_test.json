@@ -1,8 +1,8 @@
 {
     "dparams": {
-        "dt": 0.01,
+        "dt": 0.05,
         "Tl": 1.0,
-        "Tr": 1.025,
+        "Tr": 1.05,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -12,15 +12,15 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 250,
+        "N": 500,
         "dim": 1,
-        "step": 1000000,
-        "catene_CI": 10000000,
-        "catene_scelte": 10000000
+        "step": 200000,
+        "catene_CI": 1000000,
+        "catene_scelte": 1000000
     },
     "sparams": {
         "dir_CI": "",
-        "dir": "test_generation"
+        "dir": "test_generation_smalldt"
     },
     "bparams": {
         "save_conditions": false,

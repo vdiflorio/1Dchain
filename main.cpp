@@ -42,6 +42,7 @@ int main (int argc, char** argv)
   int catene_scelte = p.iparams["catene_scelte"]; // numero di catene
   bool save_conditions = p.bparams["save_conditions"];
   bool time_average = p.bparams["time_average"];
+  int job_id=p.iparams["job_id"];
   double dt = p.dparams["dt"];
   double ergodic_mean;
   ////////////////////////////////////
@@ -67,10 +68,19 @@ int main (int argc, char** argv)
     // Solo il processo 0 legge il file binario
     std::ostringstream file_name;
     // Creazione del nome del file con N e Tr
-    file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << ".dat";
+    // add a short random hex suffix to avoid name collisions
+    std::string rand_suffix;
+    {
+      const char charset[] = "0123456789abcdef";
+      std::mt19937_64 rng(std::random_device{}());
+      std::uniform_int_distribution<int> dist(0, 15);
+      rand_suffix.reserve(6);
+      for (int i = 0; i < 6; ++i) rand_suffix += charset[dist(rng)];
+    }
+    file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << "_" << rand_suffix << ".dat";
 
     // Numero massimo da leggere dal file
-    const int MAX_FROM_FILE = 8000000;
+    const int MAX_FROM_FILE = 300000;
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
@@ -81,7 +91,7 @@ int main (int argc, char** argv)
       
       
       if (read_conditions_num >= MAX_FROM_FILE)
-        read_conditions_subset (X_tot, neq, MAX_FROM_FILE);
+        read_conditions_subset (X_tot, neq, MAX_FROM_FILE,job_id);
       else
         read_conditions (X_tot, read_conditions_num, neq); // legge meno
 

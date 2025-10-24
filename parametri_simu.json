@@ -1,8 +1,8 @@
 {
     "dparams": {
-        "dt": 0.001,
+        "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 1.05,
+        "Tr": 6.0,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -12,15 +12,16 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 500,
+        "N": 50,
         "dim": 1,
-        "step": 1000000,
-        "catene_CI": 1000000,
-        "catene_scelte": 1000000
+        "step": 10000,
+        "catene_CI": 1000,
+        "catene_scelte": 1000,
+        "job_id": 0
     },
     "sparams": {
         "dir_CI": "",
-        "dir": "test_generation"
+        "dir": "test_generation_smalldt_disjoint"
     },
     "bparams": {
         "save_conditions": false,
