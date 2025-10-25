@@ -82,7 +82,7 @@ save_every = 1
 n_chains = 1000      # simulazioni parallele
 
 # esempio
-filename = f"../condizioni_{N}.bin"
+filename = f"condizioni_{N}.bin"
 x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
 
 # ------------------------------------------------------
