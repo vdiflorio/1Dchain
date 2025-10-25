@@ -322,7 +322,7 @@ void read_conditions_subset (std::vector<double>& condizioni, int neq, const int
   int N = p.iparams["N"];
   int num_condizioni = max_catene;
   std::ostringstream name;
-  name << "../condizioni_" << N << ".bin";
+  name << "condizioni_" << N << ".bin";
   std::string filename = name.str();
 
   std::cout << "Leggo da file con subset: " << filename << std::endl;
@@ -452,7 +452,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << "../condizioni_" << N << ".bin";
+  name << "condizioni_" << N << ".bin";
   std::string filename = name.str();
 
 
@@ -498,18 +498,24 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   condizioni.reserve (num_condizioni * neq);
 
   int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
+  // Genera un vettore con tutti gli indici da 0 a num_condizioni - 1
+  std::vector<int64_t> all_indices(num_condizioni);
+  std::iota(all_indices.begin(), all_indices.end(), 0);
 
-  // Genera un vettore con tutti gli indici
-  std::vector<int64_t> all_indices (num_condizioni);
-  std::iota (all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
+  // Seleziona semplicemente i primi num_selezioni indici (senza mescolare)
+  std::vector<int64_t> indices(all_indices.begin(), all_indices.begin() + num_selezioni);
 
-  // Mescola il vettore
-  std::random_device rd;
-  std::mt19937 gen (rd());
-  std::shuffle (all_indices.begin(), all_indices.end(), gen);
+  // // Genera un vettore con tutti gli indici
+  // std::vector<int64_t> all_indices (num_condizioni);
+  // std::iota (all_indices.begin(), all_indices.end(), 0); // Riempie con {0, 1, 2, ..., num_condizioni - 1}
 
-  // Seleziona i primi num_selezioni indici
-  std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
+  // // Mescola il vettore
+  // std::random_device rd;
+  // std::mt19937 gen (rd());
+  // std::shuffle (all_indices.begin(), all_indices.end(), gen);
+
+  // // Seleziona i primi num_selezioni indici
+  // std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
 
   // Timer per calcolare la velocità
