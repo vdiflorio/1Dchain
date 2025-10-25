@@ -189,7 +189,6 @@ start = time.time()
 x_final, p_final, xiL_final, xiR_final,store = simulate_multi_jit(x0, p0, xiL0, xiR0, dt, t_steps, save_every)
 end = time.time()
 print(f"Simulazione completata in {end - start:.2f}s")
-print(store.shape)
 # ------------------------------------------------------
 # PROFILO DI TEMPERATURA
 # ------------------------------------------------------
