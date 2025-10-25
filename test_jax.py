@@ -122,6 +122,38 @@ def rk4_step(x, p, xi_L, xi_R, dt):
     xi_R_new = xi_R + dt*(k1xiR + 2*k2xiR + 2*k3xiR + k4xiR)/6.0
     return x_new, p_new, xi_L_new, xi_R_new
 
+
+# ------------------------------------------------------
+# PARAMETRI DI SIMULAZIONE
+# ------------------------------------------------------
+# ------------------------------------------------------
+# ESECUZIONE
+# ------------------------------------------------------
+# ------------------------------------------------------
+# PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
+# ------------------------------------------------------
+N = 30               # numero di masse mobili
+m = 1.0
+a = 1.0               # distanza di equilibrio
+chi = 1.0
+alpha = 1.0
+beta = 1.0
+grad_T=0.1
+
+Tl = 1.0    # temperature dei termostati sinistro e destro
+Tr=Tl+N*grad_T
+
+thetaL, thetaR = 1.0, 1.0
+
+dt = 0.01
+t_steps = 10000
+save_every = 1
+
+n_chains = 1000      # simulazioni parallele
+
+filename = f"condizioni_{N}.bin"
+x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
+
 def omega0_fn(T):
     return xiR0*p0[:,-2]**2*(1/Tr-1/T)+xiL0*p0[:,1]**2*(1/Tl-1/T)
 
@@ -150,33 +182,7 @@ def simulate_multi(x0, p0, xiL0, xiR0, dt, t_steps, save_every):
 
 
 
-# ------------------------------------------------------
-# ESECUZIONE
-# ------------------------------------------------------
-# ------------------------------------------------------
-# PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
-# ------------------------------------------------------
-N = 30               # numero di masse mobili
-m = 1.0
-a = 1.0               # distanza di equilibrio
-chi = 1.0
-alpha = 1.0
-beta = 1.0
-grad_T=0.1
 
-Tl = 1.0    # temperature dei termostati sinistro e destro
-Tr=Tl+N*grad_T
-
-thetaL, thetaR = 1.0, 1.0
-
-dt = 0.01
-t_steps = 10000
-save_every = 1
-
-n_chains = 1000      # simulazioni parallele
-
-filename = f"condizioni_{N}.bin"
-x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
 
 simulate_multi_jit = jax.jit(simulate_multi, static_argnames=("t_steps", "save_every"))
 start = time.time()
