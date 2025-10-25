@@ -209,7 +209,7 @@ void generate_condition (const std::vector<double>& base_cond,
                   + perturbation_strength * (drand48() - 0.5);
   }
 
-  int step = 1;
+  int step = 100000;
   double t = 0.0;
   double dt = p.dparams["dt"];
 
@@ -314,134 +314,122 @@ std::cout<<new_cond[5]<<std::endl;
 std::cout<<new_cond_fast[5]<<std::endl;
 }
 
-void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene, int job_id)
+
+void read_conditions_subset(std::vector<double>& condizioni, int neq, const int max_catene, int job_id)
 {
-  // Apri il file binario
-  // Creazione del nome del file dinamico
-  int dim = p.iparams["dim"];
-  int N = p.iparams["N"];
-  int num_condizioni = max_catene;
-  std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
-  std::string filename = name.str();
+    // Dynamic file name
+    int dim = p.iparams["dim"];
+    int N = p.iparams["N"];
+    std::ostringstream name;
+    name << "../condizioni_" << N << ".bin";
+    std::string filename = name.str();
 
-  std::cout << "Leggo da file con subset: " << filename << std::endl;
+    std::cout << "Leggo da file con subset: " << filename << std::endl;
+    std::cout << "Job ID: " << job_id << std::endl;
 
-  std::cout << "Job ID: " << job_id << std::endl;
-  // Apertura del file con il nome dinamico
-  int fd = open (filename.c_str(), O_RDONLY);
-
-  if (fd == -1) {
-    std::cerr << "Errore nell'apertura del file per lettura!" << std::endl;
-    return;
-  }
-
-  // Ottieni la dimensione del file
-  off_t file_size = lseek (fd, 0, SEEK_END);
-
-  if (file_size == -1) {
-    std::cerr << "Errore nell'ottenere la dimensione del file!" << std::endl;
-    return;
-  }
-
-  // Mappa il file in memoria
-  void* file_memory = mmap (NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
-
-  if (file_memory == MAP_FAILED) {
-    std::cerr << "Errore nel mappare il file in memoria!" << std::endl;
-    return;
-  }
-
-  // Dimensione di una condizione in byte
-  int dimensione_condizione = neq * sizeof (double);
-
-  // Calcola il numero di condizioni nel file
-  int numero_condizioni_tot = file_size / dimensione_condizione * 2; // *2 per la simmetria
-  std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
-
-  if (num_condizioni > numero_condizioni_tot) {
-    std::cerr << "Errore: il numero di condizioni richiesto eccede il numero di condizioni nel file." << std::endl;
-    munmap (file_memory, file_size);
-    close (fd);
-    return;
-  }
-
-  // Prepara il vettore per le condizioni
-  int64_t total_elements = static_cast<int64_t>(num_condizioni) * static_cast<int64_t>(neq);
-  std::cout << "num_condizioni: " << num_condizioni
-          << ", neq: " << neq
-          << ", total elements: " << total_elements << std::endl;
-  double total_gb = total_elements * sizeof(double) / 1e9;
-  std::cout << "Total memory needed: " << total_gb << " GB" << std::endl;
-  condizioni.resize (total_elements);
-
-  int64_t num_selezioni = num_condizioni / 2;  // number of indices per job (your chunk size)
-
-// Generate all indices once
-std::vector<int64_t> all_indices(num_condizioni / 2);
-std::iota(all_indices.begin(), all_indices.end(), 0);
-
-
-
-// Compute start and end for this job
-int64_t start = job_id * num_selezioni;
-int64_t end = std::min(start + num_selezioni, (int64_t)all_indices.size());
-
-// Extract this job’s disjoint indices
-std::vector<int64_t> indices(all_indices.begin() + start, all_indices.begin() + end);
-
-
-  // Timer per calcolare la velocità
-  auto start_time = std::chrono::high_resolution_clock::now();
-  int read_count = 0;
-
-
-  // Lettura dei dati
-for (int64_t i = 0; i < static_cast<int64_t>(num_condizioni)/2; ++i) {
-    // Calcolare l'offset per l'indice casuale
-    int64_t offset = indices[i] * static_cast<int64_t>(dimensione_condizione);
-
-    // Controllo per non leggere oltre la memoria mappata
-    if (offset + static_cast<int64_t>(neq) * sizeof(double) > file_size) {
-        std::cerr << "Attempting to read past end of file at index " << i << std::endl;
-        break;
+    // Open file
+    int fd = open(filename.c_str(), O_RDONLY);
+    if (fd == -1) {
+        perror("Errore nell'apertura del file");
+        return;
     }
 
-    // Leggere direttamente dalla memoria mappata
-    double* condizione_ptr = reinterpret_cast<double*>(
-        static_cast<char*>(file_memory) + offset
-    );
+    // Get file size
+    off_t file_size = lseek(fd, 0, SEEK_END);
+    if (file_size == -1) {
+        perror("Errore nell'ottenere la dimensione del file");
+        close(fd);
+        return;
+    }
 
-    std::copy(
-        condizione_ptr, 
-        condizione_ptr + neq, 
-        condizioni.begin() + i * static_cast<int64_t>(neq)
-    );
+    // Compute one condition size
+    size_t dimensione_condizione = static_cast<size_t>(neq) * sizeof(double);
+    int64_t numero_condizioni_tot = file_size / dimensione_condizione;
 
-    read_count++;
-}
+    std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
 
-// Modifica delle condizioni per il secondo ciclo
-for (int64_t k = static_cast<int64_t>(num_condizioni) / 2; k < static_cast<int64_t>(num_condizioni); ++k) {
-    for (int64_t j = 0; j < static_cast<int64_t>(neq); ++j) {
-        int64_t src_idx = (k - static_cast<int64_t>(num_condizioni) / 2) * static_cast<int64_t>(neq) + j;
-        int64_t dst_idx = k * static_cast<int64_t>(neq) + j;
+    // Compute chunk boundaries for this job
+    int64_t start_idx = static_cast<int64_t>(job_id) * max_catene;
+    int64_t end_idx = std::min(start_idx + static_cast<int64_t>(max_catene),
+                               static_cast<int64_t>(numero_condizioni_tot));
 
-        if (j < static_cast<int64_t>(neq) - 2) {
-            if (j % 2 != 0) {
-                condizioni[dst_idx] = -condizioni[src_idx];
+    if (start_idx >= numero_condizioni_tot) {
+        std::cerr << "Errore: job_id " << job_id
+                  << " oltre il numero di condizioni disponibili." << std::endl;
+        close(fd);
+        return;
+    }
+
+    int64_t num_to_read = end_idx - start_idx;
+
+    std::cout << "Leggo condizioni da " << start_idx
+              << " a " << end_idx - 1 << " (" << num_to_read << " condizioni)" << std::endl;
+
+    // Compute mapping parameters
+    off_t offset = start_idx * dimensione_condizione;
+    size_t map_size = num_to_read * dimensione_condizione;
+
+    if (offset + map_size > static_cast<size_t>(file_size)) {
+        std::cerr << "Errore: offset + map_size oltre la fine del file!" << std::endl;
+        close(fd);
+        return;
+    }
+
+    // Align offset to page boundary
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    off_t aligned_offset = offset & ~(page_size - 1);
+    off_t offset_diff = offset - aligned_offset;
+    size_t aligned_map_size = map_size + offset_diff;
+
+    // Map memory
+    void* file_memory = mmap(NULL, aligned_map_size, PROT_READ, MAP_PRIVATE, fd, aligned_offset);
+    if (file_memory == MAP_FAILED) {
+        perror("mmap");
+        close(fd);
+        return;
+    }
+
+    char* data_start = static_cast<char*>(file_memory) + offset_diff;
+
+    // Prepare output vector
+    int64_t total_elements = num_to_read * static_cast<int64_t>(neq) * 2; // *2 for symmetric extension
+    condizioni.resize(total_elements);
+
+    // Read data directly from mapped memory
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    for (int64_t i = 0; i < num_to_read; ++i) {
+        const double* condizione_ptr = reinterpret_cast<const double*>(
+            data_start + i * dimensione_condizione
+        );
+        std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
+    }
+
+    // Mirror modification for symmetry
+    for (int64_t k = num_to_read; k < 2 * num_to_read; ++k) {
+        for (int64_t j = 0; j < neq; ++j) {
+            int64_t src_idx = (k - num_to_read) * neq + j;
+            int64_t dst_idx = k * neq + j;
+
+            if (j < neq - 2) {
+                if (j % 2 != 0) {
+                    condizioni[dst_idx] = -condizioni[src_idx];
+                } else {
+                    condizioni[dst_idx] = condizioni[src_idx];
+                }
             } else {
-                condizioni[dst_idx] = condizioni[src_idx];
+                condizioni[dst_idx] = -condizioni[src_idx];
             }
-        } else {
-            condizioni[dst_idx] = -condizioni[src_idx];
         }
     }
-}
 
-  // Libera la memoria mappata e chiudi il file
-  munmap (file_memory, file_size);
-  close (fd);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end_time - start_time;
+    std::cout << "Lettura completata in " << elapsed.count() << " s" << std::endl;
+
+    // Cleanup
+    munmap(file_memory, aligned_map_size);
+    close(fd);
 }
 
 void read_conditions (std::vector<double>& condizioni, int num_condizioni, int neq)

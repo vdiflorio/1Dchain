@@ -16,7 +16,7 @@ JSON_FILE="parametri_simu.json"
 
 for i in {0..9}; do
   echo "Esecuzione numero: $i"
-for N in  250; do #100 200 300 400 500 750 1000; do 
+for N in  250 500; do #100 200 300 400 500 750 1000; do 
 for grad in 0.0001; do
     
     
