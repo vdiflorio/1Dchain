@@ -194,7 +194,7 @@ print(f"Simulazione completata in {end - start:.2f}s")
 # ------------------------------------------------------
 T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
 
-
+print("TL e TR :  ",Tl, Tr)
 print("Condizioni iniziali di una catena:")
 print("Posizioni iniziali x0:")
 print(x0[0])
