@@ -213,7 +213,7 @@ int main (int argc, char** argv)
     for (int i = 0; i <= N+1; ++i)
       std::cout << X_local[0][2*i+1] << " ";
     std::cout << "]\n";
-    std::cout<< "Bulk particle:  " << (N-(N*0.15)*2.0)<<std::endl;
+    std::cout<< "Bulk particle:  " << (N- int(N*0.15)*2.0)<<std::endl;
     std::cout << "condizione iniziale esempio observable: " << observable_bulk (X_local[0]) << std::endl;
     std::cout << "Condizione iniale omega esempio: " << omega_vec[0] << std::endl;
 
