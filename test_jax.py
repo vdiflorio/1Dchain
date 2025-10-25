@@ -194,11 +194,6 @@ print(f"Simulazione completata in {end - start:.2f}s")
 # PROFILO DI TEMPERATURA
 # ------------------------------------------------------
 
-bd_paticle = 4
-segment = x0[:, bd_paticle : N - bd_paticle + 1]     
-r = jnp.diff(segment, axis=1) - a                   
-flux = (chi*r + alpha*r**2 + beta*r**3) * p0[:, bd_paticle : N - bd_paticle] / m
-
 T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
 print("bulk particle number:  ", N-2*int(N*0.15))
 print("TL e TR :  ",Tl, Tr)
@@ -211,8 +206,6 @@ print("Valore iniziale di omega0 per la catena 0:")
 print(omega0[0])
 print("Valore iniziale di observable_bulk per la catena 0: ")
 print(observable_bulk(x0,p0)[0])
-print("Valore iniziale di observable_bulk per la catena 0: ")
-print(flux.mean(axis=0)[0])
 print("condizioni finali di una catena:")
 print("Posizioni finali x_final:")
 print(x_final[0])
