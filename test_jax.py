@@ -55,33 +55,6 @@ def read_conditions_fput_parallel(filename, num_condizioni, N):
     return x, p, xiL, xiR
 
 
-
-# ------------------------------------------------------
-# PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
-# ------------------------------------------------------
-N = 30               # numero di masse mobili
-m = 1.0
-a = 1.0               # distanza di equilibrio
-chi = 1.0
-alpha = 1.0
-beta = 1.0
-grad_T=0.1
-
-Tl = 1.0    # temperature dei termostati sinistro e destro
-Tr=Tl+N*grad_T
-
-thetaL, thetaR = 1.0, 1.0
-
-dt = 0.01
-t_steps = 10000
-save_every = 1
-
-n_chains = 1000      # simulazioni parallele
-
-# esempio
-filename = f"condizioni_{N}.bin"
-x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
-
 # ------------------------------------------------------
 # RHS DEL SISTEMA (FPUT + TERMOSTATI)
 # ------------------------------------------------------
@@ -156,7 +129,7 @@ omega0=omega0_fn(1.)
 
 def observable_bulk(x,p):    
     bd_paticle = int(N*0.15)
-    segment = x[:,bd_paticle:N-bd_paticle]
+    segment = x[:,bd_paticle:N-bd_paticle+1]
     r = jnp.diff(segment,axis=1)-a
     return ((chi*r+alpha*r**2+beta*r**3)*p[:,bd_paticle:N-bd_paticle]/m).mean(axis=1)
 
@@ -180,6 +153,31 @@ def simulate_multi(x0, p0, xiL0, xiR0, dt, t_steps, save_every):
 # ------------------------------------------------------
 # ESECUZIONE
 # ------------------------------------------------------
+# ------------------------------------------------------
+# PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
+# ------------------------------------------------------
+N = 30               # numero di masse mobili
+m = 1.0
+a = 1.0               # distanza di equilibrio
+chi = 1.0
+alpha = 1.0
+beta = 1.0
+grad_T=0.1
+
+Tl = 1.0    # temperature dei termostati sinistro e destro
+Tr=Tl+N*grad_T
+
+thetaL, thetaR = 1.0, 1.0
+
+dt = 0.01
+t_steps = 10000
+save_every = 1
+
+n_chains = 1000      # simulazioni parallele
+
+filename = f"condizioni_{N}.bin"
+x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
+
 simulate_multi_jit = jax.jit(simulate_multi, static_argnames=("t_steps", "save_every"))
 start = time.time()
 x_final, p_final, xiL_final, xiR_final,store = simulate_multi_jit(x0, p0, xiL0, xiR0, dt, t_steps, save_every)
