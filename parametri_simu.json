@@ -2,7 +2,7 @@
     "dparams": {
         "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 6.0,
+        "Tr": 4.0,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -14,7 +14,7 @@
     "iparams": {
         "N": 30,
         "dim": 1,
-        "step": 1,
+        "step": 1000,
         "catene_CI": 1000,
         "catene_scelte": 1000,
         "job_id": 0

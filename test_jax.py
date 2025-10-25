@@ -146,7 +146,7 @@ Tr=Tl+N*grad_T
 thetaL, thetaR = 1.0, 1.0
 
 dt = 0.01
-t_steps = 10000
+t_steps = 1000
 save_every = 1
 
 n_chains = 1000      # simulazioni parallele
@@ -202,6 +202,8 @@ print("Momenti iniziali p0:")
 print(p0[0])
 print("Valore iniziale di omega0 per la catena 0:")
 print(omega0[0])
+print("Valore iniziale di observable_bulk per la catena 0: ")
+print(observable_bulk(x0,p0)[0])
 print("condizioni finali di una catena:")
 print("Posizioni finali x_final:")
 print(x_final[0])

@@ -205,10 +205,14 @@ int main (int argc, char** argv)
       omega_mean += omega_vec[i];
     }
     std::cout << "\nEsempio di condizione iniziale letta e generate:\n";
-    std::cout << "Posizioni iniziali prima catena: ";
-    for (int i = 0; i < neq; ++i)
-      std::cout << X_local[0][i] << " ";
-    std::cout << "\n";
+    std::cout << "Posizioni iniziali prima catena: [";
+    for (int i = 0; i <= N+1; ++i)
+      std::cout << X_local[0][2*i] << " ";
+    std::cout << "]\n";
+    std::cout << "Velocità iniziali prima catena: [";
+    for (int i = 0; i <= N+1; ++i)
+      std::cout << X_local[0][2*i+1] << " ";
+    std::cout << "]\n";
     std::cout << "condizione iniziale esempio observable: " << observable_bulk (X_local[0]) << std::endl;
     std::cout << "Condizione iniale omega esempio: " << omega_vec[0] << std::endl;
 
@@ -286,6 +290,15 @@ int main (int argc, char** argv)
 
     if (rank == 0)
       std::cout <<"\nTotal simulation time: " << end_time - start_time << std::endl;
+
+    std::cout << "Posizioni finali prima catena: [";
+    for (int i = 0; i <= N+1; ++i)
+      std::cout << X_local[0][2*i] << " ";
+    std::cout << "]\n";
+    std::cout << "Velocità finali prima catena: [";
+    for (int i = 0; i <= N+1; ++i)
+      std::cout << X_local[0][2*i+1] << " ";
+    std::cout << "]\n";
   }
 
   MPI_Finalize();
