@@ -5,6 +5,7 @@ import jax.numpy as jnp
 from jax import lax
 import time
 import jax.numpy as jnp
+jax.config.update("jax_enable_x64", True)
 
 def read_conditions_fput_parallel(filename, num_condizioni, N):
     """
@@ -159,12 +160,12 @@ def omega0_fn(T):
 
 omega0=omega0_fn(1.)
 
-def observable_bulk(x,p):    
-    bd_paticle = int(N*0.15)
-    segment = x[:,bd_paticle:N-bd_paticle+1]
-    r = jnp.diff(segment,axis=1)-a
-    return ((chi*r+alpha*r**2+beta*r**3)*p[:,bd_paticle:N-bd_paticle]/m).mean(axis=1)
-
+def observable_bulk(x, p):    
+    bd_paticle = int(N * 0.15)
+    segment = x[:, bd_paticle : N - bd_paticle + 1]     
+    r = jnp.diff(segment, axis=1) - a                   
+    flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
+    return flux.mean(axis=1)                          
 
 # ------------------------------------------------------
 # SIMULAZIONE MULTI-CATENA
