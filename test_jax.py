@@ -1,12 +1,9 @@
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
 from jax import lax
-import matplotlib.pyplot as plt
 import time
-from diffrax import Dopri5
 import jax.numpy as jnp
 
 def read_conditions_fput_parallel(filename, num_condizioni, N):
@@ -195,13 +192,5 @@ print(store.shape)
 T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
 
 
-
-plt.figure(figsize=(6,4))
-plt.plot(jnp.arange(1, N+1), T_profile, marker='o')
-plt.xlabel("Particella")
-plt.ylabel("Temperatura (a.u.)")
-plt.title("Profilo di temperatura lungo la catena FPUT")
-plt.grid(True)
-plt.show()
 
 print(x_final[0])
