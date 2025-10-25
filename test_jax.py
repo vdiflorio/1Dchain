@@ -193,7 +193,7 @@ print(f"Simulazione completata in {end - start:.2f}s")
 # PROFILO DI TEMPERATURA
 # ------------------------------------------------------
 T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
-
+print("bulk particle number:  ", N-2*int(N*0.15))
 print("TL e TR :  ",Tl, Tr)
 print("Condizioni iniziali di una catena:")
 print("Posizioni iniziali x0:")
