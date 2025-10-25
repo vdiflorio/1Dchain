@@ -196,5 +196,15 @@ print(store.shape)
 T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
 
 
-
+print("Condizioni iniziali di una catena:")
+print("Posizioni iniziali x0:")
+print(x0[0])
+print("Momenti iniziali p0:")
+print(p0[0])
+print("Valore iniziale di omega0 per la catena 0:")
+print(omega0[0])
+print("condizioni finali di una catena:")
+print("Posizioni finali x_final:")
 print(x_final[0])
+print("Momenti finali p_final:")
+print(p_final[0])
