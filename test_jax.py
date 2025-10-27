@@ -162,7 +162,6 @@ def observable_bulk(x, p):
     segment = x[:, bd_paticle : N - bd_paticle + 1]     
     r = jnp.diff(segment, axis=1) - a                   
     flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
-    print(flux.shape)
     return flux.mean(axis=1)                          
 
 # ------------------------------------------------------
@@ -209,3 +208,10 @@ print("Posizioni finali x_final:")
 print(x_final[0])
 print("Momenti finali p_final:")
 print(p_final[0])
+
+bd_paticle = int(N * 0.15)
+segment = x0[0, bd_paticle : N - bd_paticle + 1]     
+r = jnp.diff(segment) - a                   
+flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
+print("Valore iniziale di flux per la catena 0: ")
+print(flux)
