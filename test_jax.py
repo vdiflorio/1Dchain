@@ -210,6 +210,7 @@ print("Momenti finali p_final:")
 print(p_final[0])
 
 bd_paticle = int(N * 0.15)
+print(bd_paticle)
 segment = x0[0, bd_paticle : N - bd_paticle + 1]     
 r = jnp.diff(segment) - a 
 print("Valore iniziale di r per la catena 0: ")
