@@ -162,7 +162,8 @@ def observable_bulk(x, p):
     segment = x[:, bd_paticle : N - bd_paticle + 1]     
     r = jnp.diff(segment, axis=1) - a                   
     flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
-    return flux.sum(axis=1)                          
+    print(flux.shape)
+    return flux.mean(axis=1)                          
 
 # ------------------------------------------------------
 # SIMULAZIONE MULTI-CATENA
