@@ -159,9 +159,9 @@ omega0=omega0_fn(1.)
 
 def observable_bulk(x, p):    
     bd_paticle = int(N * 0.15)
-    segment = x[:, bd_paticle : N - bd_paticle + 2]     
+    segment = x[:, bd_paticle +1: N - bd_paticle + 2]     
     r = jnp.diff(segment, axis=1) - a                   
-    flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle+1] / m
+    flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle+1 : N - bd_paticle+1] / m
     return flux.mean(axis=1)                          
 
 # ------------------------------------------------------
