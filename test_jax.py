@@ -159,9 +159,9 @@ omega0=omega0_fn(1.)
 
 def observable_bulk(x, p):    
     bd_paticle = int(N * 0.15)
-    segment = x[:, bd_paticle +1: N - bd_paticle + 2]     
+    segment = x[:, bd_paticle: N - bd_paticle + 1]     
     r = jnp.diff(segment, axis=1) - a                   
-    flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle+1 : N - bd_paticle+1] / m
+    flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
     return flux.mean(axis=1)                          
 
 # ------------------------------------------------------
@@ -191,31 +191,6 @@ print(f"Simulazione completata in {end - start:.2f}s")
 # PROFILO DI TEMPERATURA
 # ------------------------------------------------------
 
-T_profile = jnp.mean(p_final[:, 1:-1]**2 / m, axis=0)
-print("bulk particle number:  ", N-2*int(N*0.15))
-print("TL e TR :  ",Tl, Tr)
-print("Condizioni iniziali di una catena:")
-print("Posizioni iniziali x0:")
-print(x0[0])
-print("Momenti iniziali p0:")
-print(p0[0])
-print("Valore iniziale di omega0 per la catena 0:")
-print(omega0[0])
-print("Valore iniziale di observable_bulk per la catena 0: ")
 print(observable_bulk(x0,p0)[0])
-print("condizioni finali di una catena:")
-print("Posizioni finali x_final:")
-print(x_final[0])
-print("Momenti finali p_final:")
-print(p_final[0])
 
-bd_paticle = int(N * 0.15)
-print(bd_paticle)
-segment = x0[0, bd_paticle : N - bd_paticle + 2]     
-r = jnp.diff(segment) - a 
-print("Valore iniziale di r per la catena 0: ")
-print(r)   
-print("Valore iniziale di p0 per la catena 0: ")
-print(p0[0, bd_paticle : N - bd_paticle])               
-flux = (chi*r + alpha*r**2 + beta*r**3) * p0[0, bd_paticle : N - bd_paticle+1] / m
-print(flux.sum()/22)
+
