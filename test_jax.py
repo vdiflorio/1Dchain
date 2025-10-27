@@ -125,9 +125,6 @@ def rk4_step(x, p, xi_L, xi_R, dt):
 
 
 # ------------------------------------------------------
-# PARAMETRI DI SIMULAZIONE
-# ------------------------------------------------------
-# ------------------------------------------------------
 # ESECUZIONE
 # ------------------------------------------------------
 # ------------------------------------------------------
@@ -165,7 +162,7 @@ def observable_bulk(x, p):
     segment = x[:, bd_paticle : N - bd_paticle + 1]     
     r = jnp.diff(segment, axis=1) - a                   
     flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
-    return flux.mean(axis=1)                          
+    return flux.sum(axis=1)                          
 
 # ------------------------------------------------------
 # SIMULAZIONE MULTI-CATENA

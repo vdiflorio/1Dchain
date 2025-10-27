@@ -1,8 +1,8 @@
 {
     "dparams": {
-        "dt": 0.05,
+        "dt": 0.01,
         "Tl": 1.0,
-        "Tr": 1.025,
+        "Tr": 4,
         "a": 1.0,
         "alpha": 1.0,
         "beta": 1.0,
@@ -12,11 +12,11 @@
         "thetaR": 1.0
     },
     "iparams": {
-        "N": 250,
+        "N": 30,
         "dim": 1,
-        "step": 200000,
-        "catene_CI": 1000000,
-        "catene_scelte": 1000000,
+        "step": 1000,
+        "catene_CI": 1000,
+        "catene_scelte": 1000,
         "job_id": 0
     },
     "sparams": {
