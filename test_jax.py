@@ -191,6 +191,4 @@ print(f"Simulazione completata in {end - start:.2f}s")
 # PROFILO DI TEMPERATURA
 # ------------------------------------------------------
 
-print(observable_bulk(x0,p0)[0])
-
 
