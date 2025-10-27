@@ -142,7 +142,7 @@ double observable_bulk (std::vector<double> &Y)
 
 
 
-  for (i = bd_paticle; i <= N-bd_paticle; i++) {
+  for (i = bd_paticle; i < N-bd_paticle; i++) {
     n = k*i;
 
     r1 = (Y[n+k] - Y[n] - a);
@@ -154,7 +154,7 @@ double observable_bulk (std::vector<double> &Y)
   }
 
   //std::cout<<(N-bd_paticle*2.0)<<"  "<<flux<<" "<<flux/(N-bd_paticle*2.0)<<std::endl;
-  return flux/ (N-bd_paticle*2.0+1);
+  return flux/ (N-bd_paticle*2.0);
 }
 
 double observable (std::vector<double> &Y)
