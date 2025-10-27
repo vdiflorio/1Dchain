@@ -154,7 +154,7 @@ double observable_bulk (std::vector<double> &Y)
   }
 
   //std::cout<<(N-bd_paticle*2.0)<<"  "<<flux<<" "<<flux/(N-bd_paticle*2.0)<<std::endl;
-  return flux/ (N-bd_paticle*2.0);
+  return flux/ (N-bd_paticle*2.0+1);
 }
 
 double observable (std::vector<double> &Y)
