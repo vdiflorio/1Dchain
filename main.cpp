@@ -229,6 +229,8 @@ int main (int argc, char** argv)
     for (i = bd_paticle; i <= N-bd_paticle; i++) {
       n = 2*i;
       const double r1 = (X_local[0][n+2] - X_local[0][n] - a);
+      std::cout << "R1 particle " << i << ": " << r1 << 
+                   "  Momentum:  " << X_local[0][n+dim] << std::endl;
       // eq. for momentum
       flux += (chi* (r1) +
               Alpha* (r1*r1) +
