@@ -1,8 +1,8 @@
 *.bin 
 
 *.o
-
-
+*.json
+*.ipynb
 *.txt
 
 fput
