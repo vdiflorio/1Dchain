@@ -211,12 +211,12 @@ print(p_final[0])
 
 bd_paticle = int(N * 0.15)
 print(bd_paticle)
-segment = x0[0, bd_paticle : N - bd_paticle + 1]     
+segment = x0[0, bd_paticle : N - bd_paticle + 2]     
 r = jnp.diff(segment) - a 
 print("Valore iniziale di r per la catena 0: ")
 print(r)   
 print("Valore iniziale di p0 per la catena 0: ")
 print(p0[0, bd_paticle : N - bd_paticle])               
-flux = (chi*r + alpha*r**2 + beta*r**3) * p0[0, bd_paticle : N - bd_paticle] / m
+flux = (chi*r + alpha*r**2 + beta*r**3) * p0[0, bd_paticle : N - bd_paticle+1] / m
 print("Valore iniziale di flux per la catena 0: ")
 print(flux)
