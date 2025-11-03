@@ -131,7 +131,7 @@ def rk4_step(x, p, xi_L, xi_R, dt):
 # ------------------------------------------------------
 # PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
 # ------------------------------------------------------
-N = 500               # numero di masse mobili
+N = 110               # numero di masse mobili
 m = 1.0
 a = 1.0               # distanza di equilibrio
 chi = 1.0
@@ -145,7 +145,7 @@ Tr=Tl+N*grad_T
 thetaL, thetaR = 1.0, 1.0
 
 dt = 0.01
-t_steps = 20000
+t_steps = 200000
 save_every = 1
 
 n_chains = 1000000     # simulazioni parallele
@@ -207,38 +207,47 @@ os.makedirs(results_dir, exist_ok=True)
 block_size = 1000
 
 n_blocks = t_steps // block_size
-
+all_store=[]
 start = time.time()
 print(f"Inizio simulazione ({n_blocks} blocchi da {block_size} passi)...")
 
 x, p, xiL, xiR = x0, p0, xiL0, xiR0
 
-for b in tqdm(range(n_blocks), desc="Simulazione a blocchi"):
-    x, p, xiL, xiR, store_block = simulate_multi_jit(x, p, xiL, xiR, dt, block_size, save_every)
-    np.save(os.path.join(results_dir, f"store_block_{b:05d}.npy"), np.array(store_block))
+#for b in tqdm(range(n_blocks), desc="Simulazione a blocchi"):
+x, p, xiL, xiR, store_block = simulate_multi_jit(x, p, xiL, xiR, dt, block_size, save_every)
+    #all_store.append(store_block)
+end = time.time()
+print(f"Simulazione completata in {end - start:.2f} s")
+start = time.time()
+x, p, xiL, xiR, store_block = simulate_multi_jit(x, p, xiL, xiR, dt, block_size, save_every)
 
 end = time.time()
 print(f"Simulazione completata in {end - start:.2f} s")
-print(f"Risultati salvati in: {results_dir}/store_block_XXXXX.npy")
+#final_store = np.array(jnp.concatenate(all_store).block_until_ready(), dtype=np.float32)
+
+print(f"Simulazione completata in {end - start:.2f} s")
+#np.save(os.path.join(results_dir, "store_full.npy"), final_store)
+
+# print(f"Risultati salvati in: {results_dir}/store_block_XXXXX.npy")
 
 # ------------------------------------------------------
 # UNIONE (opzionale, dopo la simulazione)
 # ------------------------------------------------------
-def concat_results(results_dir):
-    files = sorted(f for f in os.listdir(results_dir) if f.startswith("store_block_") and f.endswith(".npy"))
-    arrays = [np.load(os.path.join(results_dir, f)) for f in files]
-    full_store = np.concatenate(arrays)
+# def concat_results(results_dir):
+#     files = sorted(f for f in os.listdir(results_dir) if f.startswith("store_block_") and f.endswith(".npy"))
+#     arrays = [np.load(os.path.join(results_dir, f)) for f in files]
+#     full_store = np.concatenate(arrays)
 
-    out_name = os.path.join(results_dir, "store_full.npy")
-    np.save(out_name, full_store)
-    print(f"File completo salvato in: {out_name}")
+#     out_name = os.path.join(results_dir, "store_full.npy")
+#     np.save(out_name, full_store)
+#     print(f"File completo salvato in: {out_name}")
 
-    # elimina i file dei blocchi
-    for f in files:
-        os.remove(os.path.join(results_dir, f))
-    print("File dei blocchi intermedi eliminati.")
+#     # elimina i file dei blocchi
+#     for f in files:
+#         os.remove(os.path.join(results_dir, f))
+#     print("File dei blocchi intermedi eliminati.")
 
-    return full_store
+#     return full_store
 
 
-concat_results(results_dir)
+#concat_results(results_dir)
