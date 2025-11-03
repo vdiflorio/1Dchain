@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 from jax import lax
 import time
+from tqdm import tqdm
 import jax.numpy as jnp
 jax.config.update("jax_enable_x64", True)
 
@@ -130,7 +131,7 @@ def rk4_step(x, p, xi_L, xi_R, dt):
 # ------------------------------------------------------
 # PARAMETRI DEL SISTEMA FPUT CON TERMOSTATI
 # ------------------------------------------------------
-N = 30               # numero di masse mobili
+N = 500               # numero di masse mobili
 m = 1.0
 a = 1.0               # distanza di equilibrio
 chi = 1.0
@@ -144,12 +145,12 @@ Tr=Tl+N*grad_T
 thetaL, thetaR = 1.0, 1.0
 
 dt = 0.01
-t_steps = 1000
+t_steps = 20000
 save_every = 1
 
-n_chains = 1000      # simulazioni parallele
+n_chains = 1000000     # simulazioni parallele
 
-filename = f"condizioni_{N}.bin"
+filename = f"../condizioni_{N}.bin"
 x0, p0, xiL0, xiR0 = read_conditions_fput_parallel(filename, n_chains, N)
 
 def omega0_fn(T):
@@ -164,31 +165,80 @@ def observable_bulk(x, p):
     flux = (chi*r + alpha*r**2 + beta*r**3) * p[:, bd_paticle : N - bd_paticle] / m
     return flux.mean(axis=1)                          
 
+
 # ------------------------------------------------------
 # SIMULAZIONE MULTI-CATENA
 # ------------------------------------------------------
 def simulate_multi(x0, p0, xiL0, xiR0, dt, t_steps, save_every):
+    """
+    Esegue t_steps passi di integrazione con RK4 e ritorna solo le osservabili salvate ogni save_every passi.
+    """
+    n_save = t_steps // save_every
+
     def body(carry, step):
-        x, p, xiL, xiR= carry
+        x, p, xiL, xiR, store = carry
         x, p, xiL, xiR = rk4_step(x, p, xiL, xiR, dt)
-        #scrivi per salvare
-        return (x, p, xiL, xiR), omega0*observable_bulk(x,p)
+        obs_val = (omega0 * observable_bulk(x, p)).mean()
+        store = jax.lax.cond(
+            (step % save_every) == 0,
+            lambda s: s.at[step // save_every].set(obs_val),
+            lambda s: s,
+            store
+        )
+        return (x, p, xiL, xiR, store), None
 
-    init = (x0, p0, xiL0, xiR0)
-    (x_final, p_final, xiL_final, xiR_final), store = lax.scan(body, init, jnp.arange(t_steps))
-    return x_final, p_final, xiL_final, xiR_final,store
+    store = jnp.zeros(n_save)
+    init = (x0, p0, xiL0, xiR0, store)
+    (x_final, p_final, xiL_final, xiR_final, store), _ = lax.scan(
+        body, init, jnp.arange(t_steps)
+    )
+    return x_final, p_final, xiL_final, xiR_final, store
 
 
-
-
-
+# ------------------------------------------------------
+# ESECUZIONE A BLOCCHI
+# ------------------------------------------------------
 simulate_multi_jit = jax.jit(simulate_multi, static_argnames=("t_steps", "save_every"))
+
+results_dir = "results"
+os.makedirs(results_dir, exist_ok=True)
+
+
+block_size = 1000
+
+n_blocks = t_steps // block_size
+
 start = time.time()
-x_final, p_final, xiL_final, xiR_final,store = simulate_multi_jit(x0, p0, xiL0, xiR0, dt, t_steps, save_every)
+print(f"Inizio simulazione ({n_blocks} blocchi da {block_size} passi)...")
+
+x, p, xiL, xiR = x0, p0, xiL0, xiR0
+
+for b in tqdm(range(n_blocks), desc="Simulazione a blocchi"):
+    x, p, xiL, xiR, store_block = simulate_multi_jit(x, p, xiL, xiR, dt, block_size, save_every)
+    np.save(os.path.join(results_dir, f"store_block_{b:05d}.npy"), np.array(store_block))
+
 end = time.time()
-print(f"Simulazione completata in {end - start:.2f}s")
+print(f"Simulazione completata in {end - start:.2f} s")
+print(f"Risultati salvati in: {results_dir}/store_block_XXXXX.npy")
+
 # ------------------------------------------------------
-# PROFILO DI TEMPERATURA
+# UNIONE (opzionale, dopo la simulazione)
 # ------------------------------------------------------
+def concat_results(results_dir):
+    files = sorted(f for f in os.listdir(results_dir) if f.startswith("store_block_") and f.endswith(".npy"))
+    arrays = [np.load(os.path.join(results_dir, f)) for f in files]
+    full_store = np.concatenate(arrays)
+
+    out_name = os.path.join(results_dir, "store_full.npy")
+    np.save(out_name, full_store)
+    print(f"File completo salvato in: {out_name}")
+
+    # elimina i file dei blocchi
+    for f in files:
+        os.remove(os.path.join(results_dir, f))
+    print("File dei blocchi intermedi eliminati.")
+
+    return full_store
 
 
+concat_results(results_dir)
