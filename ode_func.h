@@ -19,6 +19,8 @@ void AlfaBetaFPUT (double t, std::vector<double> &Y, std::vector<double> &R);
 
 void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R);
 
+void LepriChain_initial (double t, std::vector<double> &Y, std::vector<double> &R);
+
 #endif // CONSTANTS_H
 
 
