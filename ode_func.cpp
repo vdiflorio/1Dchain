@@ -418,7 +418,39 @@ void LJ (double t, std::vector<double> &Y, std::vector<double> &R)
 
 void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
 //
-//RSH of motion of system
+// LepriChain
+// ----------
+// Calcola il lato destro (RHS) del sistema di equazioni del moto per una
+// catena mono-dimensionale di masse accoppiate secondo un modello di tipo
+// FPU-β (potenziale quartico), con condizioni al contorno fisse e
+// termostati di Nosé–Hoover applicati alla prima e all’ultima massa mobile.
+//
+// Il potenziale totale implementato è:
+//
+//     V = Σ_i [ 1/2 (x_{i+1} - x_i - a)^2
+//              + 1/2 (x_i - i a)^2
+//              + 1/4 (x_i - i a)^4 ]
+//
+// dove x_i sono le coordinate delle masse e a è la distanza di equilibrio.
+// Nel codice la forza derivante dal potenziale locale è:
+//        F_local = - (r + r^3),  con r = (x_i - i a)
+//
+// Le equazioni integrate sono:
+//   - ẋ_i = p_i / m
+//   - ṗ_i = (x_{i+1} + x_{i-1} - 2 x_i) + F_local
+//
+// Per le prime e ultime masse mobili sono presenti i termini dei termostati
+// di Nosé–Hoover:
+//
+//   ṗ_1  ← ṗ_1  - Ψ_L ẋ_1
+//   ṗ_N  ← ṗ_N  - Ψ_R ẋ_N
+//
+// Le variabili Ψ_L e Ψ_R evolvono secondo:
+//   Ψ̇ = (K/T - 1) / θ²
+//
+// La funzione richiede il vettore di stato Y contenente, per ogni massa,
+// prima le posizioni e poi i momenti, ed inserisce in R le loro derivate.
+//
 ///////////////////////////////////////////
 {
   double Tl = p.dparams["Tl"];
@@ -474,8 +506,7 @@ void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
 
   // eq. for momentum
   R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
-             spring* (- Y[n] -
-                      r1*r1*r1 + a) - Psi1*R[n];
+             spring* (- r1 - r1*r1*r1 ) - Psi1*R[n];
 
   ////////////////////////////////////
 
@@ -492,8 +523,7 @@ void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
 
     // eq. for momentum
     R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
-               spring* (- Y[n] -
-                        r1*r1*r1 + i*a);
+               spring* (- r1 - r1*r1*r1);
   }
 
   //l' ultima massa mobile
@@ -506,8 +536,7 @@ void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
 
   // eq. for momentum
   R[n+dim] = Y[n+k] + Y[n-k] - 2.0*Y[n] +
-             spring* (- Y[n] -
-                      r1*r1*r1 + i*a) - Psi2*R[n] ;
+             spring* (- r1 - r1*r1*r1) - Psi2*R[n] ;
 
 
   ////////////////////////////////////
