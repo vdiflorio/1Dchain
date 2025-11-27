@@ -241,7 +241,7 @@ int main (int argc, char** argv)
 
       for (int i = 0; i < X_local.size(); ++i) {
         //RK4Step_fast(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
-        RK4Step_fast (t, X_local[i], AlfaBetaFPUT, dt,neq); // integration of the function
+        RK4Step_fast (t, X_local[i], LepriChain, dt,neq); // integration of the function
         t_vec[i] += dt;
         ttcf_mean += TTCF (observable_bulk, omega_vec[i],X_local[i], T_init);
       }
