@@ -215,7 +215,7 @@ void generate_condition (const std::vector<double>& base_cond,
 
   for (int h=1; h<= step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step_fast (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    RK4Step_fast (t, new_cond, LepriChain_initial, dt,neq); // integration of the function
     t += dt;
   }
 }
@@ -296,14 +296,14 @@ void timing_RK (int neq)
   auto start_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
   for (int h=1; h<= step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step_fast (t, new_cond, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    RK4Step_fast (t, new_cond, LepriChain_initial, dt,neq); // integration of the function
     t += dt;
   }
   auto end_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
   auto start_time_fast = std::chrono::steady_clock::now();; // Start timer for ETA calculation
   for (int h=1; h<= step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step_fast (t, new_cond_fast, AlfaBetaFPUT_initial, dt,neq); // integration of the function
+    RK4Step_fast (t, new_cond_fast, LepriChain_initial, dt,neq); // integration of the function
     t += dt;
   }
 auto end_time_fast = std::chrono::steady_clock::now(); // Start timer for ETA calculation
@@ -628,13 +628,13 @@ int save_condizioni_iniziali (int num_catene)
     //EVOLUZIONE SISTEMA
     for (h=1; h<=step - no_step; h++) {
       //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+      RK4Step_fast (t, X, LepriChain, dt,neq); // integration of the function
       t += dt;
     }
 
     for (h=step - no_step; h<=step; h++) {
       //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+      RK4Step_fast (t, X, LepriChain, dt,neq); // integration of the function
       t += dt;
 
       if (drand48()<0.005) {
@@ -763,7 +763,7 @@ void compute_mean ()
   //EVOLUZIONE SISTEMA
   for (h=1; h<=step - no_step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+    RK4Step_fast (t, X, LepriChain, dt,neq); // integration of the function
     t += dt;
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
@@ -778,7 +778,7 @@ void compute_mean ()
 
   for (h=step - no_step; h<=step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-    RK4Step_fast (t, X, AlfaBetaFPUT, dt,neq); // integration of the function
+    RK4Step_fast (t, X, LepriChain, dt,neq); // integration of the function
     t += dt;
 
     ni = k*int (N*0.5);
