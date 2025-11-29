@@ -80,7 +80,7 @@ int main (int argc, char** argv)
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << "_" << rand_suffix << ".dat";
 
     // Numero massimo da leggere dal file
-    const int MAX_FROM_FILE = 300000;
+    const int MAX_FROM_FILE = 750000;
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
@@ -165,16 +165,27 @@ int main (int argc, char** argv)
       // crea e salva la condizione simmetrica
       std::vector<double> cond_sym (neq);
 
-      for (int j = 0; j < neq; ++j) {
-        if (j < neq - 2) {
-          cond_sym[j] = (j % 2 != 0 ? -cond[j] : cond[j]);
-        } else {
+    
+    for (int j = 0; j < neq; ++j) {
+      if (j < neq - 2) {
+        // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
+        if (j % 2 != 0) {
           cond_sym[j] = -cond[j];
+        } else {
+          // Per i componenti pari, copia semplicemente
+          cond_sym[j] = cond[j];
         }
+      } else {
+        // Per gli ultimi due componenti, moltiplica per -1
+        cond_sym[j] = -cond[j];
       }
+    }
+  
 
       X_local.push_back (cond_sym);
     }
+    
+    
     
     double end_time_bis = MPI_Wtime(); // end timer for ETA calculation
 

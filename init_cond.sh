@@ -4,7 +4,7 @@
 #SBATCH -e output/errors_%x_pid_%j.txt
 
 #SBATCH --nodes=3
-#SBATCH --ntasks=190
+#SBATCH --ntasks=240
 #SBATCH --partition=cpu_sapphire
 #SBATCH --mem=90G
 #SBATCH --time=23:59:59  
@@ -12,12 +12,14 @@
 module load /share/apps/legion-modulefiles/openmpi/5.0.7_gcc12 
 
 TEMPLATE_JSON="parametri_simu.json"
+# Use the first argument passed to the script as N
+N=${1:-250}  # default to 250 if no argument is provided
 
-for N in 250; do  # 100 200 300 400 500 750 1000
-for i in {0..15}; do
+
+for i in {0..10}; do
   echo "Esecuzione numero: $i"
 
-  for grad in 0.0001; do
+  for grad in 0.001; do
 
     # Crea una copia temporanea del file JSON
     JSON_COPY="parametri_simu_${N}_${grad}_${i}.json"
@@ -34,11 +36,11 @@ for i in {0..15}; do
     echo "File JSON modificato con successo."
 
     # Esegui il programma MPI usando la copia
-    mpirun --bind-to none -np 190 ./fput "$JSON_COPY"
+    mpirun --bind-to none -np 240 ./fput "$JSON_COPY"
 
     # (Opzionale) Rimuovi la copia per non lasciare file temporanei
     rm -f "$JSON_COPY"
 
   done
 done
-done
+

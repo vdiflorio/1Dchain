@@ -9,3 +9,5 @@ fput
 
 *.dat
 
+*.npy
+*.csv

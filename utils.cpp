@@ -349,8 +349,8 @@ void read_conditions_subset(std::vector<double>& condizioni, int neq, const int 
     std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
 
     // Compute chunk boundaries for this job
-    int64_t start_idx = static_cast<int64_t>(job_id) * max_catene;
-    int64_t end_idx = std::min(start_idx + static_cast<int64_t>(max_catene),
+    int64_t start_idx = static_cast<int64_t>(job_id) * max_catene/2;
+    int64_t end_idx = std::min(start_idx + static_cast<int64_t>(max_catene/2),
                                static_cast<int64_t>(numero_condizioni_tot));
 
     if (start_idx >= numero_condizioni_tot) {
@@ -423,6 +423,8 @@ void read_conditions_subset(std::vector<double>& condizioni, int neq, const int 
         }
     }
 
+    
+
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
     std::cout << "Lettura completata in " << elapsed.count() << " s" << std::endl;
@@ -440,7 +442,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << "condizioni_" << N << ".bin";
+  name << "../condizioni_" << N << ".bin";
   std::string filename = name.str();
 
 
