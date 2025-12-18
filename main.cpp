@@ -34,6 +34,8 @@ int main (int argc, char** argv)
     }
   }
 
+  
+
   // varibili lette da file
   int dim = p.iparams["dim"];
   int N = p.iparams["N"];
@@ -80,7 +82,7 @@ int main (int argc, char** argv)
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << "_" << rand_suffix << ".dat";
 
     // Numero massimo da leggere dal file
-    const int MAX_FROM_FILE = 750000;
+    const int MAX_FROM_FILE = 250000;
     // Quante condizioni effettive servono
     int total_conditions = catene_scelte;
     // Decidi quante leggere
@@ -211,8 +213,8 @@ int main (int argc, char** argv)
 
     for (int i = 0; i < X_local.size(); ++i) {
       omega_vec[i] = omega_0 (X_local[i], T_init);
-      ttcf_mean_prev += TTCF (observable_bulk, omega_vec[i],X_local[i], T_init);
-      obs_mean_prev += observable_bulk (X_local[i]);
+      ttcf_mean_prev += TTCF (observable_bulk_pinning, omega_vec[i],X_local[i], T_init);
+      obs_mean_prev += observable_bulk_pinning (X_local[i]);
       omega_mean += omega_vec[i];
     }
     
@@ -254,7 +256,7 @@ int main (int argc, char** argv)
         //RK4Step_fast(t_vec[i], X_local[i], betaFPUT, dt,neq);   // integration of the function
         RK4Step_fast (t, X_local[i], LepriChain, dt,neq); // integration of the function
         t_vec[i] += dt;
-        ttcf_mean += TTCF (observable_bulk, omega_vec[i],X_local[i], T_init);
+        ttcf_mean += TTCF (observable_bulk_pinning, omega_vec[i],X_local[i], T_init);
       }
 
       MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &ttcf_mean, &ttcf_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);

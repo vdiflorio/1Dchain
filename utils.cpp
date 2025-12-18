@@ -116,7 +116,41 @@ double observable_tot (std::vector<double> &Y)
   return flux/N;
 }
 
+double observable_bulk_pinning (std::vector<double> &Y)
+{
+  // Function to compute any observable, that is function of the phase space state
+  double Tl = p.dparams["Tl"];
+  double Tr = p.dparams["Tr"];
+  double m = p.dparams["m"];
+  double a = p.dparams["a"];
+  double thetaL = p.dparams["thetaL"];
+  double thetaR = p.dparams["thetaR"];
+  double chi = p.dparams["chi"];
+  double bet = p.dparams["beta"];
+  double Alpha = p.dparams["alpha"];
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
 
+  int k = 2*dim;
+  int i,j,n;
+  double r1 =0.0;
+  double flux = 0;
+  int bd_paticle = N*0.15;
+
+
+
+  for (i = bd_paticle; i < N-bd_paticle; i++) {
+    n = k*i;
+
+    r1 = (Y[n+k] - Y[n] - a);
+    // eq. for momentum
+    flux += (chi* (r1))*Y[n+dim]/m;
+
+  }
+
+  //std::cout<<(N-bd_paticle*2.0)<<"  "<<flux<<" "<<flux/(N-bd_paticle*2.0)<<std::endl;
+  return flux/ (N-bd_paticle*2.0);
+}
 
 
 double observable_bulk (std::vector<double> &Y)
@@ -321,7 +355,7 @@ void read_conditions_subset(std::vector<double>& condizioni, int neq, const int 
     int dim = p.iparams["dim"];
     int N = p.iparams["N"];
     std::ostringstream name;
-    name << "../condizioni_" << N << ".bin";
+    name << "lepri_chain/condizioni_lepri_" << N << ".bin";
     std::string filename = name.str();
 
     std::cout << "Leggo da file con subset: " << filename << std::endl;
@@ -442,7 +476,7 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   int N = p.iparams["N"];
 
   std::ostringstream name;
-  name << "../condizioni_" << N << ".bin";
+  name << "lepri_chain/condizioni_lepri_" << N << ".bin";
   std::string filename = name.str();
 
 
@@ -559,6 +593,21 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
   close (fd);
 }
 
+#include <cmath>
+#include <cstdlib>
+
+double gaussian(double sigma=1.0) {
+    double u1 = drand48();  // in (0,1)
+    double u2 = drand48();  // in (0,1)
+
+    double r = sqrt(-2.0 * log(u1));
+    double theta = 2.0 * M_PI * u2;
+
+    return sigma * r * cos(theta);  // N(0, sigma^2)
+}
+
+
+
 
 int save_condizioni_iniziali (int num_catene)
 {
@@ -568,9 +617,9 @@ int save_condizioni_iniziali (int num_catene)
 
   int neq = (N+2)*2*dim + 2;
   std::vector<double> X (neq);
-  long int step = 50000000;
+  long int step = 200000000;
   long int h;
-  long int no_step = 8000000;
+  long int no_step = 80000000;
   long int progress = 0;
   int k,i,j,l,n;
   double t, dt;
@@ -619,20 +668,75 @@ int save_condizioni_iniziali (int num_catene)
 
       for (i= 0; i<dim; ++i) {
         X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4; //posizione
-        X[n+i+dim]= drand48()*0.2 - 0.1; //velocità
+        // X[n+i+dim]= drand48()*0.2 - 0.1; //velocità
+        X[n + i + dim] = gaussian(1.0); 
       }
     }
 
     X[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
 
+    double sumv2 = 0.0;
+int count = N*dim;
 
-
-    //EVOLUZIONE SISTEMA
-    for (h=1; h<=step - no_step; h++) {
-      //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
-      RK4Step_fast (t, X, LepriChain, dt,neq); // integration of the function
-      t += dt;
+for (int j = 1; j <= N; ++j) {
+    int n = k*j;
+    for (int i = 0; i < dim; ++i) {
+        sumv2 += X[n + i + dim]*X[n + i + dim];
     }
+}
+
+double scale = sqrt(1.0 / (sumv2 / count));
+
+for (int j = 1; j <= N; ++j) {
+    int n = k*j;
+    for (int i = 0; i < dim; ++i) {
+        X[n + i + dim] *= scale;
+    }
+} 
+
+   
+    int M = 1000;  // salva ogni 100 passi (puoi cambiare)
+std::ofstream fout("temp_profile.txt");
+fout << t;
+for (int j = 1; j <= N; ++j) {
+    int n = k*j;
+    double v2 = 0.0;
+    for (int i = 0; i < dim; ++i) {
+        double v = X[n + i + dim];
+        v2 += v*v;
+    }
+    fout << " " << v2;
+}
+fout << "\n";
+for (int h = 1; h <= step; h++) {
+
+    // Integrazione passo
+    RK4Step_fast(t, X, LepriChain, dt, neq);
+
+   
+    // if (h % M == 0) {
+
+    //     fout << t;  // prima colonna = tempo
+
+    //     for (int j = 1; j <= N; ++j) {
+    //         int n = k * j;
+    //         double v2 = 0.0;
+
+    //         for (int i = 0; i < dim; ++i) {
+    //             double v = X[n + i + dim];
+    //             v2 += v * v;  // velocità al quadrato
+    //         }
+
+    //         fout << " " << v2;   // una colonna per particella
+    //     }
+
+    //     fout << "\n";
+    // }
+
+    t += dt;
+}
+
+fout.close();
 
     for (h=step - no_step; h<=step; h++) {
       //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
@@ -650,7 +754,7 @@ int save_condizioni_iniziali (int num_catene)
   int dimension_condizioni;
   dimension_condizioni = condizioni.size();
   std::ostringstream name;
-  name << p.sparams["dir_CI"] <<"/condizioni_" << N << ".bin";
+  name << p.sparams["dir_CI"] <<"/condizioni_lepri_" << N << ".bin";
 
   // Apertura del file con il nome dinamico
   std::ofstream outFile (name.str(), std::ios::binary);
@@ -769,9 +873,10 @@ void compute_mean ()
     t += dt;
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
-    cum_mean_tmp += (chi* (r1) +
-                     Alpha* (r1*r1) +
-                     bet* (r1*r1*r1))*X[ni+dim]/m;
+    // cum_mean_tmp += (chi* (r1) +
+    //                  Alpha* (r1*r1) +
+    //                  bet* (r1*r1*r1))*X[ni+dim]/m;
+    cum_mean_tmp += (chi* (r1))*X[ni+dim]/m;
 
     if (h%n_conv == 0) {
       vect_conv.push_back (cum_mean_tmp/h);
@@ -785,9 +890,10 @@ void compute_mean ()
 
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
-    cum_mean_tmp += (chi* (r1) +
-                     Alpha* (r1*r1) +
-                     bet* (r1*r1*r1))*X[ni+dim]/m;
+    // cum_mean_tmp += (chi* (r1) +
+    //                  Alpha* (r1*r1) +
+    //                  bet* (r1*r1*r1))*X[ni+dim]/m;
+    cum_mean_tmp += (chi* (r1))*X[ni+dim]/m;
 
     if (h%n_conv == 0) {
       vect_conv.push_back (cum_mean_tmp/h);
@@ -796,9 +902,10 @@ void compute_mean ()
     for (i = bd_paticle; i < N-bd_paticle; i++) {
       n = k*i;
       r1 = (X[n+k] - X[n] - a);
-      cum_mean[i-bd_paticle]+= (chi* (r1) +
-                                Alpha* (r1*r1) +
-                                bet* (r1*r1*r1))*X[n+dim]/m;
+      // cum_mean[i-bd_paticle]+= (chi* (r1) +
+      //                           Alpha* (r1*r1) +
+      //                           bet* (r1*r1*r1))*X[n+dim]/m;
+      cum_mean[i-bd_paticle]+= (chi* (r1))*X[n+dim]/m;
     }
 
     for (i = 1; i <= N; i++) {

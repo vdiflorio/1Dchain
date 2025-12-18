@@ -11,3 +11,5 @@ fput
 
 *.npy
 *.csv
+
+*.sh
