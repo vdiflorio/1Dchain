@@ -11,12 +11,13 @@
 
 module load /share/apps/legion-modulefiles/openmpi/5.0.7_gcc12 
 
+
 TEMPLATE_JSON="parametri_simu.json"
-# Use the first argument passed to the script as N
+#Use the first argument passed to the script as N
 N=${1:-250}  # default to 250 if no argument is provided
 
 
-for i in {0..10}; do
+for i in {0..9}; do
   echo "Esecuzione numero: $i"
 
   for grad in 0.001; do
