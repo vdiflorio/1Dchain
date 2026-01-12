@@ -1,5 +1,5 @@
 CXX=mpicxx
-CPPFLAGS=-I/opt/local/include
+CPPFLAGS=-I/opt/local/include -I../include -I../external
 LIBS=-lmpi
 CXXFLAGS= -std=c++17 -Ofast -mtune=native -march=native
 #CXXFLAGS= -std=c++17 -O2 -fsanitize=address -g
