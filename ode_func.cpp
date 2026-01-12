@@ -1,3 +1,19 @@
+/*
+ * This file is part of 1Dchain.
+ *
+ * Copyright (C) 2026
+ * Vincenzo Di Florio, Davide Carbone
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 #include "ode_func.h"
 #include "param.h"
@@ -427,26 +443,26 @@ void LepriChain (double t, std::vector<double> &Y, std::vector<double> &R)
 //
 // Il potenziale totale implementato è:
 //
-//     V = Σ_i [ 1/2 (x_{i+1} - x_i - a)^2
-//              + 1/2 (x_i - i a)^2
-//              + 1/4 (x_i - i a)^4 ]
+// V = Σ_i [ 1/2 (x_{i+1} - x_i - a)^2
+// + 1/2 (x_i - i a)^2
+// + 1/4 (x_i - i a)^4 ]
 //
 // dove x_i sono le coordinate delle masse e a è la distanza di equilibrio.
 // Nel codice la forza derivante dal potenziale locale è:
-//        F_local = - (r + r^3),  con r = (x_i - i a)
+// F_local = - (r + r^3),  con r = (x_i - i a)
 //
 // Le equazioni integrate sono:
-//   - ẋ_i = p_i / m
-//   - ṗ_i = (x_{i+1} + x_{i-1} - 2 x_i) + F_local
+// - ẋ_i = p_i / m
+// - ṗ_i = (x_{i+1} + x_{i-1} - 2 x_i) + F_local
 //
 // Per le prime e ultime masse mobili sono presenti i termini dei termostati
 // di Nosé–Hoover:
 //
-//   ṗ_1  ← ṗ_1  - Ψ_L ẋ_1
-//   ṗ_N  ← ṗ_N  - Ψ_R ẋ_N
+// ṗ_1  ← ṗ_1  - Ψ_L ẋ_1
+// ṗ_N  ← ṗ_N  - Ψ_R ẋ_N
 //
 // Le variabili Ψ_L e Ψ_R evolvono secondo:
-//   Ψ̇ = (K/T - 1) / θ²
+// Ψ̇ = (K/T - 1) / θ²
 //
 // La funzione richiede il vettore di stato Y contenente, per ogni massa,
 // prima le posizioni e poi i momenti, ed inserisce in R le loro derivate.
@@ -560,26 +576,26 @@ void LepriChain_initial (double t, std::vector<double> &Y, std::vector<double> &
 //
 // Il potenziale totale implementato è:
 //
-//     V = Σ_i [ 1/2 (x_{i+1} - x_i - a)^2
-//              + 1/2 (x_i - i a)^2
-//              + 1/4 (x_i - i a)^4 ]
+// V = Σ_i [ 1/2 (x_{i+1} - x_i - a)^2
+// + 1/2 (x_i - i a)^2
+// + 1/4 (x_i - i a)^4 ]
 //
 // dove x_i sono le coordinate delle masse e a è la distanza di equilibrio.
 // Nel codice la forza derivante dal potenziale locale è:
-//        F_local = - (r + r^3),  con r = (x_i - i a)
+// F_local = - (r + r^3),  con r = (x_i - i a)
 //
 // Le equazioni integrate sono:
-//   - ẋ_i = p_i / m
-//   - ṗ_i = (x_{i+1} + x_{i-1} - 2 x_i) + F_local
+// - ẋ_i = p_i / m
+// - ṗ_i = (x_{i+1} + x_{i-1} - 2 x_i) + F_local
 //
 // Per le prime e ultime masse mobili sono presenti i termini dei termostati
 // di Nosé–Hoover:
 //
-//   ṗ_1  ← ṗ_1  - Ψ_L ẋ_1
-//   ṗ_N  ← ṗ_N  - Ψ_R ẋ_N
+// ṗ_1  ← ṗ_1  - Ψ_L ẋ_1
+// ṗ_N  ← ṗ_N  - Ψ_R ẋ_N
 //
 // Le variabili Ψ_L e Ψ_R evolvono secondo:
-//   Ψ̇ = (K/T - 1) / θ²
+// Ψ̇ = (K/T - 1) / θ²
 //
 // La funzione richiede il vettore di stato Y contenente, per ogni massa,
 // prima le posizioni e poi i momenti, ed inserisce in R le loro derivate.

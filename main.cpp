@@ -1,3 +1,20 @@
+/*
+ * This file is part of 1Dchain.
+ *
+ * Copyright (C) 2026
+ * Vincenzo Di Florio, Davide Carbone
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 #include "ode_solvers.h"
 #include "ode_func.h"
 #include "utils.h"
@@ -34,7 +51,7 @@ int main (int argc, char** argv)
     }
   }
 
-  
+
 
   // varibili lette da file
   int dim = p.iparams["dim"];
@@ -74,11 +91,13 @@ int main (int argc, char** argv)
     std::string rand_suffix;
     {
       const char charset[] = "0123456789abcdef";
-      std::mt19937_64 rng(std::random_device{}());
-      std::uniform_int_distribution<int> dist(0, 15);
-      rand_suffix.reserve(6);
-      for (int i = 0; i < 6; ++i) rand_suffix += charset[dist(rng)];
+      std::mt19937_64 rng (std::random_device{}());
+      std::uniform_int_distribution<int> dist (0, 15);
+      rand_suffix.reserve (6);
+
+      for (int i = 0; i < 6; ++i) rand_suffix += charset[dist (rng)];
     }
+
     file_name << p.sparams["dir"] << "/ttcf_mil_N_" << N << "_Tr_" << p.dparams["Tr"] << "_" << rand_suffix << ".dat";
 
     // Numero massimo da leggere dal file
@@ -88,16 +107,17 @@ int main (int argc, char** argv)
     // Decidi quante leggere
     int read_conditions_num = std::min (total_conditions, MAX_FROM_FILE);
     double start_time_bis = MPI_Wtime();
+
     if (rank == 0) {
       std::cout << "\nnumero di catene scelto: " << catene_scelte <<std::endl<<std::endl;
-      
-      
+
+
       if (read_conditions_num >= MAX_FROM_FILE)
         read_conditions_subset (X_tot, neq, MAX_FROM_FILE,job_id);
       else
         read_conditions (X_tot, read_conditions_num, neq); // legge meno
 
-      
+
 
 
 
@@ -167,32 +187,33 @@ int main (int argc, char** argv)
       // crea e salva la condizione simmetrica
       std::vector<double> cond_sym (neq);
 
-    
-    for (int j = 0; j < neq; ++j) {
-      if (j < neq - 2) {
-        // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
-        if (j % 2 != 0) {
-          cond_sym[j] = -cond[j];
+
+      for (int j = 0; j < neq; ++j) {
+        if (j < neq - 2) {
+          // Per gli indici 0 a neq-2, prendi i componenti dispari e moltiplica per -1
+          if (j % 2 != 0) {
+            cond_sym[j] = -cond[j];
+          } else {
+            // Per i componenti pari, copia semplicemente
+            cond_sym[j] = cond[j];
+          }
         } else {
-          // Per i componenti pari, copia semplicemente
-          cond_sym[j] = cond[j];
+          // Per gli ultimi due componenti, moltiplica per -1
+          cond_sym[j] = -cond[j];
         }
-      } else {
-        // Per gli ultimi due componenti, moltiplica per -1
-        cond_sym[j] = -cond[j];
       }
-    }
-  
+
 
       X_local.push_back (cond_sym);
     }
-    
-    
-    
+
+
+
     double end_time_bis = MPI_Wtime(); // end timer for ETA calculation
 
     if (rank == 0)
       std::cout <<"\nTotal generation time: " << end_time_bis - start_time_bis << std::endl;
+
     // Ora X_local contiene sia quelle lette che quelle generate
     //std::cout << "Rank " << rank << " ha " << X_local.size() << " condizioni totali\n";
 
@@ -217,7 +238,7 @@ int main (int argc, char** argv)
       obs_mean_prev += observable_bulk_pinning (X_local[i]);
       omega_mean += omega_vec[i];
     }
-    
+
 
     MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &ttcf_mean_prev, &ttcf_mean_prev, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
     MPI_Reduce (rank == 0 ? MPI_IN_PLACE : &omega_mean, &omega_mean, 1, MPI_DOUBLE, MPI_SUM, 0, mpicomm);
@@ -296,11 +317,11 @@ int main (int argc, char** argv)
 
     // std::cout << "Posizioni finali prima catena: [";
     // for (int i = 0; i <= N+1; ++i)
-    //   std::cout << X_local[0][2*i] << " ";
+    // std::cout << X_local[0][2*i] << " ";
     // std::cout << "]\n";
     // std::cout << "Velocità finali prima catena: [";
     // for (int i = 0; i <= N+1; ++i)
-    //   std::cout << X_local[0][2*i+1] << " ";
+    // std::cout << X_local[0][2*i+1] << " ";
     // std::cout << "]\n";
   }
 

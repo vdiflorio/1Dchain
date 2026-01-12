@@ -1,3 +1,20 @@
+/*
+ * This file is part of 1Dchain.
+ *
+ * Copyright (C) 2026
+ * Vincenzo Di Florio, Davide Carbone
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
 // File for auxiliary functions (ex. Omega)
 #include "ode_func.h"
 #include "ode_solvers.h"
@@ -265,20 +282,20 @@ void timing_RK (int neq)
   double chi = p.dparams["chi"];
   double bet = p.dparams["beta"];
   double Alpha = p.dparams["alpha"];
-  
-  
-  
-    std::vector<double> new_cond(neq);
-    std::vector<double> new_cond_fast(neq);
-  
+
+
+
+  std::vector<double> new_cond (neq);
+  std::vector<double> new_cond_fast (neq);
+
   double X0[dim]; //unità di spaziatura
   double X_eq[dim* (N+2)]; //vettore contenete posizioni di equilibrio meccanico (potrebbe essere cancellato)
   int k,n,l;
 
   k = 2;
-  
+
   //dt = 1.e-2; //intervallo di integrazione
-  
+
 
   X0[0] = a; // nodes only along x-axis
 
@@ -306,7 +323,7 @@ void timing_RK (int neq)
 
   double alfa = 1.0; // fattore di stretching
 
-  
+
 
   for (int j= 1; j<=N; j++) {
     n=k*j;
@@ -314,9 +331,9 @@ void timing_RK (int neq)
 
     for (int i= 0; i<dim; ++i) {
       new_cond[n+i]= X_eq[l+i]*alfa - 0.4; //posizione
-      new_cond[n+i+dim]=  0.5; //velocità
+      new_cond[n+i+dim]= 0.5; //velocità
       new_cond_fast[n+i]= X_eq[l+i]*alfa - 0.4; //posizione
-      new_cond_fast[n+i+dim]=  0.5; //velocità
+      new_cond_fast[n+i+dim]= 0.5; //velocità
     }
   }
 
@@ -328,144 +345,151 @@ void timing_RK (int neq)
   double t = 0.0;
   double dt = p.dparams["dt"];
   auto start_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
+
   for (int h=1; h<= step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
     RK4Step_fast (t, new_cond, LepriChain_initial, dt,neq); // integration of the function
     t += dt;
   }
+
   auto end_time = std::chrono::steady_clock::now();; // Start timer for ETA calculation
   auto start_time_fast = std::chrono::steady_clock::now();; // Start timer for ETA calculation
+
   for (int h=1; h<= step; h++) {
     // RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
     RK4Step_fast (t, new_cond_fast, LepriChain_initial, dt,neq); // integration of the function
     t += dt;
   }
-auto end_time_fast = std::chrono::steady_clock::now(); // Start timer for ETA calculation
-std::cout<<std::chrono::duration<double>(end_time - start_time).count()<< " "<<
-                    std::chrono::duration<double>(end_time_fast - start_time_fast).count()<<std::endl;
 
-std::cout<<new_cond[5]<<std::endl;
-std::cout<<new_cond_fast[5]<<std::endl;
+  auto end_time_fast = std::chrono::steady_clock::now(); // Start timer for ETA calculation
+  std::cout<<std::chrono::duration<double> (end_time - start_time).count()<< " "<<
+           std::chrono::duration<double> (end_time_fast - start_time_fast).count()<<std::endl;
+
+  std::cout<<new_cond[5]<<std::endl;
+  std::cout<<new_cond_fast[5]<<std::endl;
 }
 
 
-void read_conditions_subset(std::vector<double>& condizioni, int neq, const int max_catene, int job_id)
+void read_conditions_subset (std::vector<double>& condizioni, int neq, const int max_catene, int job_id)
 {
-    // Dynamic file name
-    int dim = p.iparams["dim"];
-    int N = p.iparams["N"];
-    std::ostringstream name;
-    name << "lepri_chain/condizioni_lepri_" << N << ".bin";
-    std::string filename = name.str();
+  // Dynamic file name
+  int dim = p.iparams["dim"];
+  int N = p.iparams["N"];
+  std::ostringstream name;
+  name << "lepri_chain/condizioni_lepri_" << N << ".bin";
+  std::string filename = name.str();
 
-    std::cout << "Leggo da file con subset: " << filename << std::endl;
-    std::cout << "Job ID: " << job_id << std::endl;
+  std::cout << "Leggo da file con subset: " << filename << std::endl;
+  std::cout << "Job ID: " << job_id << std::endl;
 
-    // Open file
-    int fd = open(filename.c_str(), O_RDONLY);
-    if (fd == -1) {
-        perror("Errore nell'apertura del file");
-        return;
-    }
+  // Open file
+  int fd = open (filename.c_str(), O_RDONLY);
 
-    // Get file size
-    off_t file_size = lseek(fd, 0, SEEK_END);
-    if (file_size == -1) {
-        perror("Errore nell'ottenere la dimensione del file");
-        close(fd);
-        return;
-    }
+  if (fd == -1) {
+    perror ("Errore nell'apertura del file");
+    return;
+  }
 
-    // Compute one condition size
-    size_t dimensione_condizione = static_cast<size_t>(neq) * sizeof(double);
-    int64_t numero_condizioni_tot = file_size / dimensione_condizione;
+  // Get file size
+  off_t file_size = lseek (fd, 0, SEEK_END);
 
-    std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
+  if (file_size == -1) {
+    perror ("Errore nell'ottenere la dimensione del file");
+    close (fd);
+    return;
+  }
 
-    // Compute chunk boundaries for this job
-    int64_t start_idx = static_cast<int64_t>(job_id) * max_catene/2;
-    int64_t end_idx = std::min(start_idx + static_cast<int64_t>(max_catene/2),
-                               static_cast<int64_t>(numero_condizioni_tot));
+  // Compute one condition size
+  size_t dimensione_condizione = static_cast<size_t> (neq) * sizeof (double);
+  int64_t numero_condizioni_tot = file_size / dimensione_condizione;
 
-    if (start_idx >= numero_condizioni_tot) {
-        std::cerr << "Errore: job_id " << job_id
-                  << " oltre il numero di condizioni disponibili." << std::endl;
-        close(fd);
-        return;
-    }
+  std::cout << "Numero totale di condizioni nel file: " << numero_condizioni_tot << std::endl;
 
-    int64_t num_to_read = end_idx - start_idx;
+  // Compute chunk boundaries for this job
+  int64_t start_idx = static_cast<int64_t> (job_id) * max_catene/2;
+  int64_t end_idx = std::min (start_idx + static_cast<int64_t> (max_catene/2),
+                              static_cast<int64_t> (numero_condizioni_tot));
 
-    std::cout << "Leggo condizioni da " << start_idx
-              << " a " << end_idx - 1 << " (" << num_to_read << " condizioni)" << std::endl;
+  if (start_idx >= numero_condizioni_tot) {
+    std::cerr << "Errore: job_id " << job_id
+              << " oltre il numero di condizioni disponibili." << std::endl;
+    close (fd);
+    return;
+  }
 
-    // Compute mapping parameters
-    off_t offset = start_idx * dimensione_condizione;
-    size_t map_size = num_to_read * dimensione_condizione;
+  int64_t num_to_read = end_idx - start_idx;
 
-    if (offset + map_size > static_cast<size_t>(file_size)) {
-        std::cerr << "Errore: offset + map_size oltre la fine del file!" << std::endl;
-        close(fd);
-        return;
-    }
+  std::cout << "Leggo condizioni da " << start_idx
+            << " a " << end_idx - 1 << " (" << num_to_read << " condizioni)" << std::endl;
 
-    // Align offset to page boundary
-    long page_size = sysconf(_SC_PAGE_SIZE);
-    off_t aligned_offset = offset & ~(page_size - 1);
-    off_t offset_diff = offset - aligned_offset;
-    size_t aligned_map_size = map_size + offset_diff;
+  // Compute mapping parameters
+  off_t offset = start_idx * dimensione_condizione;
+  size_t map_size = num_to_read * dimensione_condizione;
 
-    // Map memory
-    void* file_memory = mmap(NULL, aligned_map_size, PROT_READ, MAP_PRIVATE, fd, aligned_offset);
-    if (file_memory == MAP_FAILED) {
-        perror("mmap");
-        close(fd);
-        return;
-    }
+  if (offset + map_size > static_cast<size_t> (file_size)) {
+    std::cerr << "Errore: offset + map_size oltre la fine del file!" << std::endl;
+    close (fd);
+    return;
+  }
 
-    char* data_start = static_cast<char*>(file_memory) + offset_diff;
+  // Align offset to page boundary
+  long page_size = sysconf (_SC_PAGE_SIZE);
+  off_t aligned_offset = offset & ~ (page_size - 1);
+  off_t offset_diff = offset - aligned_offset;
+  size_t aligned_map_size = map_size + offset_diff;
 
-    // Prepare output vector
-    int64_t total_elements = num_to_read * static_cast<int64_t>(neq) * 2; // *2 for symmetric extension
-    condizioni.resize(total_elements);
+  // Map memory
+  void* file_memory = mmap (NULL, aligned_map_size, PROT_READ, MAP_PRIVATE, fd, aligned_offset);
 
-    // Read data directly from mapped memory
-    auto start_time = std::chrono::high_resolution_clock::now();
+  if (file_memory == MAP_FAILED) {
+    perror ("mmap");
+    close (fd);
+    return;
+  }
 
-    for (int64_t i = 0; i < num_to_read; ++i) {
-        const double* condizione_ptr = reinterpret_cast<const double*>(
-            data_start + i * dimensione_condizione
-        );
-        std::copy(condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
-    }
+  char* data_start = static_cast<char*> (file_memory) + offset_diff;
 
-    // Mirror modification for symmetry
-    for (int64_t k = num_to_read; k < 2 * num_to_read; ++k) {
-        for (int64_t j = 0; j < neq; ++j) {
-            int64_t src_idx = (k - num_to_read) * neq + j;
-            int64_t dst_idx = k * neq + j;
+  // Prepare output vector
+  int64_t total_elements = num_to_read * static_cast<int64_t> (neq) * 2; // *2 for symmetric extension
+  condizioni.resize (total_elements);
 
-            if (j < neq - 2) {
-                if (j % 2 != 0) {
-                    condizioni[dst_idx] = -condizioni[src_idx];
-                } else {
-                    condizioni[dst_idx] = condizioni[src_idx];
-                }
-            } else {
-                condizioni[dst_idx] = -condizioni[src_idx];
-            }
+  // Read data directly from mapped memory
+  auto start_time = std::chrono::high_resolution_clock::now();
+
+  for (int64_t i = 0; i < num_to_read; ++i) {
+    const double* condizione_ptr = reinterpret_cast<const double*> (
+                                     data_start + i * dimensione_condizione
+                                   );
+    std::copy (condizione_ptr, condizione_ptr + neq, condizioni.begin() + i * neq);
+  }
+
+  // Mirror modification for symmetry
+  for (int64_t k = num_to_read; k < 2 * num_to_read; ++k) {
+    for (int64_t j = 0; j < neq; ++j) {
+      int64_t src_idx = (k - num_to_read) * neq + j;
+      int64_t dst_idx = k * neq + j;
+
+      if (j < neq - 2) {
+        if (j % 2 != 0) {
+          condizioni[dst_idx] = -condizioni[src_idx];
+        } else {
+          condizioni[dst_idx] = condizioni[src_idx];
         }
+      } else {
+        condizioni[dst_idx] = -condizioni[src_idx];
+      }
     }
+  }
 
-    
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end_time - start_time;
-    std::cout << "Lettura completata in " << elapsed.count() << " s" << std::endl;
 
-    // Cleanup
-    munmap(file_memory, aligned_map_size);
-    close(fd);
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = end_time - start_time;
+  std::cout << "Lettura completata in " << elapsed.count() << " s" << std::endl;
+
+  // Cleanup
+  munmap (file_memory, aligned_map_size);
+  close (fd);
 }
 
 void read_conditions (std::vector<double>& condizioni, int num_condizioni, int neq)
@@ -523,11 +547,11 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
 
   int64_t num_selezioni = num_condizioni/ 2; // Numero di indici da selezionare
   // Genera un vettore con tutti gli indici da 0 a num_condizioni - 1
-  std::vector<int64_t> all_indices(num_condizioni);
-  std::iota(all_indices.begin(), all_indices.end(), 0);
+  std::vector<int64_t> all_indices (num_condizioni);
+  std::iota (all_indices.begin(), all_indices.end(), 0);
 
   // Seleziona semplicemente i primi num_selezioni indici (senza mescolare)
-  std::vector<int64_t> indices(all_indices.begin(), all_indices.begin() + num_selezioni);
+  std::vector<int64_t> indices (all_indices.begin(), all_indices.begin() + num_selezioni);
 
   // // Genera un vettore con tutti gli indici
   // std::vector<int64_t> all_indices (num_condizioni);
@@ -596,14 +620,15 @@ void read_conditions (std::vector<double>& condizioni, int num_condizioni, int n
 #include <cmath>
 #include <cstdlib>
 
-double gaussian(double sigma=1.0) {
-    double u1 = drand48();  // in (0,1)
-    double u2 = drand48();  // in (0,1)
+double gaussian (double sigma=1.0)
+{
+  double u1 = drand48(); // in (0,1)
+  double u2 = drand48(); // in (0,1)
 
-    double r = sqrt(-2.0 * log(u1));
-    double theta = 2.0 * M_PI * u2;
+  double r = sqrt (-2.0 * log (u1));
+  double theta = 2.0 * M_PI * u2;
 
-    return sigma * r * cos(theta);  // N(0, sigma^2)
+  return sigma * r * cos (theta); // N(0, sigma^2)
 }
 
 
@@ -669,74 +694,81 @@ int save_condizioni_iniziali (int num_catene)
       for (i= 0; i<dim; ++i) {
         X[n+i]= X_eq[l+i]*alfa + drand48()*0.8 - 0.4; //posizione
         // X[n+i+dim]= drand48()*0.2 - 0.1; //velocità
-        X[n + i + dim] = gaussian(1.0); 
+        X[n + i + dim] = gaussian (1.0);
       }
     }
 
     X[ (N+1)*k] = X_eq[ (N+1)*dim]*alfa; //l'ultima particella è fissa
 
     double sumv2 = 0.0;
-int count = N*dim;
+    int count = N*dim;
 
-for (int j = 1; j <= N; ++j) {
-    int n = k*j;
-    for (int i = 0; i < dim; ++i) {
+    for (int j = 1; j <= N; ++j) {
+      int n = k*j;
+
+      for (int i = 0; i < dim; ++i) {
         sumv2 += X[n + i + dim]*X[n + i + dim];
+      }
     }
-}
 
-double scale = sqrt(1.0 / (sumv2 / count));
+    double scale = sqrt (1.0 / (sumv2 / count));
 
-for (int j = 1; j <= N; ++j) {
-    int n = k*j;
-    for (int i = 0; i < dim; ++i) {
+    for (int j = 1; j <= N; ++j) {
+      int n = k*j;
+
+      for (int i = 0; i < dim; ++i) {
         X[n + i + dim] *= scale;
+      }
     }
-} 
 
-   
-    int M = 1000;  // salva ogni 100 passi (puoi cambiare)
-std::ofstream fout("temp_profile.txt");
-fout << t;
-for (int j = 1; j <= N; ++j) {
-    int n = k*j;
-    double v2 = 0.0;
-    for (int i = 0; i < dim; ++i) {
+
+    int M = 1000; // salva ogni 100 passi (puoi cambiare)
+    std::ofstream fout ("temp_profile.txt");
+    fout << t;
+
+    for (int j = 1; j <= N; ++j) {
+      int n = k*j;
+      double v2 = 0.0;
+
+      for (int i = 0; i < dim; ++i) {
         double v = X[n + i + dim];
         v2 += v*v;
+      }
+
+      fout << " " << v2;
     }
-    fout << " " << v2;
-}
-fout << "\n";
-for (int h = 1; h <= step; h++) {
 
-    // Integrazione passo
-    RK4Step_fast(t, X, LepriChain, dt, neq);
+    fout << "\n";
 
-   
-    // if (h % M == 0) {
+    for (int h = 1; h <= step; h++) {
 
-    //     fout << t;  // prima colonna = tempo
+      // Integrazione passo
+      RK4Step_fast (t, X, LepriChain, dt, neq);
 
-    //     for (int j = 1; j <= N; ++j) {
-    //         int n = k * j;
-    //         double v2 = 0.0;
 
-    //         for (int i = 0; i < dim; ++i) {
-    //             double v = X[n + i + dim];
-    //             v2 += v * v;  // velocità al quadrato
-    //         }
+      // if (h % M == 0) {
 
-    //         fout << " " << v2;   // una colonna per particella
-    //     }
+      // fout << t;  // prima colonna = tempo
 
-    //     fout << "\n";
-    // }
+      // for (int j = 1; j <= N; ++j) {
+      // int n = k * j;
+      // double v2 = 0.0;
 
-    t += dt;
-}
+      // for (int i = 0; i < dim; ++i) {
+      // double v = X[n + i + dim];
+      // v2 += v * v;  // velocità al quadrato
+      // }
 
-fout.close();
+      // fout << " " << v2;   // una colonna per particella
+      // }
+
+      // fout << "\n";
+      // }
+
+      t += dt;
+    }
+
+    fout.close();
 
     for (h=step - no_step; h<=step; h++) {
       //RK4Step_fast(t, X, betaFPUT, dt,neq);   // integration of the function
@@ -874,8 +906,8 @@ void compute_mean ()
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
     // cum_mean_tmp += (chi* (r1) +
-    //                  Alpha* (r1*r1) +
-    //                  bet* (r1*r1*r1))*X[ni+dim]/m;
+    // Alpha* (r1*r1) +
+    // bet* (r1*r1*r1))*X[ni+dim]/m;
     cum_mean_tmp += (chi* (r1))*X[ni+dim]/m;
 
     if (h%n_conv == 0) {
@@ -891,8 +923,8 @@ void compute_mean ()
     ni = k*int (N*0.5);
     r1 = (X[ni+k] - X[ni] - a);
     // cum_mean_tmp += (chi* (r1) +
-    //                  Alpha* (r1*r1) +
-    //                  bet* (r1*r1*r1))*X[ni+dim]/m;
+    // Alpha* (r1*r1) +
+    // bet* (r1*r1*r1))*X[ni+dim]/m;
     cum_mean_tmp += (chi* (r1))*X[ni+dim]/m;
 
     if (h%n_conv == 0) {
@@ -903,8 +935,8 @@ void compute_mean ()
       n = k*i;
       r1 = (X[n+k] - X[n] - a);
       // cum_mean[i-bd_paticle]+= (chi* (r1) +
-      //                           Alpha* (r1*r1) +
-      //                           bet* (r1*r1*r1))*X[n+dim]/m;
+      // Alpha* (r1*r1) +
+      // bet* (r1*r1*r1))*X[n+dim]/m;
       cum_mean[i-bd_paticle]+= (chi* (r1))*X[n+dim]/m;
     }
 
