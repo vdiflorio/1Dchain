@@ -11,6 +11,8 @@ Post-processing and parameter handling are performed using Python scripts.
 ---
 
 ## Directory structure
+
+```directory
 1Dchain/
 ├── src/                # C++ source files
 │   ├── main.cpp        # Main executable
@@ -32,7 +34,7 @@ Post-processing and parameter handling are performed using Python scripts.
 │   ├── change_parameter.py
 │   └── read_TTCF_results.ipynb
 └── README.md
-
+```
 
 ---
 
@@ -59,15 +61,15 @@ From the src/ directory:
 ```
 
 The input file specifies:
-	•	the physical parameters of the 1D oscillator system,
-	•	numerical integration settings,
-	•	the observables used for TTCF and time-average calculations.
+ - the physical parameters of the 1D oscillator system,
+ - numerical integration settings,
+ - the observables used for TTCF and time-average calculations.
 
 ---
 
 ## Authors
-	•	Vincenzo Di Florio
-	•	Davide Carbone
+ - Vincenzo Di Florio
+ - Davide Carbone
 
 ---
 
