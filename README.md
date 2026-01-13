@@ -33,6 +33,7 @@ Post-processing and parameter handling are performed using Python scripts.
 ├── python_script/      # Python post-processing scripts
 │   ├── change_parameter.py
 │   └── read_TTCF_results.ipynb
+├── LICENSE
 └── README.md
 ```
 
@@ -54,7 +55,7 @@ This produces the executable in the same directory.
 
 ## Running a simulation
 
-From the src/ directory:
+From the `src/` directory:
 
 ```bash
 ./fput ../examples/parametri.json
